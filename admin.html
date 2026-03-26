@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BeyBattle Admin</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Orbitron', sans-serif; background: #0a0a14; color: #e8e8f0; padding: 20px; }
+h1 { color: #00d4ff; margin-bottom: 20px; font-size: 24px; }
+h2 { color: #ff3366; margin: 20px 0 10px; font-size: 18px; }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.stat-card { background: #161636; border: 1px solid #2a2a5a; border-radius: 8px; padding: 16px; text-align: center; }
+.stat-card .value { font-size: 28px; color: #00d4ff; font-weight: 700; }
+.stat-card .label { font-size: 10px; color: #8888aa; margin-top: 4px; }
+table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 11px; }
+th { background: #161636; color: #00d4ff; padding: 8px; text-align: left; border-bottom: 2px solid #2a2a5a; }
+td { padding: 8px; border-bottom: 1px solid #1a1a3a; }
+tr:hover { background: #12122a; }
+.btn { background: #ff3366; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-family: inherit; font-size: 10px; }
+.btn:hover { opacity: 0.8; }
+.burst { color: #ff4444; font-weight: 700; }
+.xtreme { color: #ffd700; font-weight: 700; }
+.spin { color: #4ade80; font-weight: 700; }
+.error { color: #ef4444; padding: 20px; text-align: center; }
+#loading { text-align: center; padding: 40px; color: #8888aa; }
+.badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 700; }
+.badge-attack { background: #ff4444; }
+.badge-defense { background: #4488ff; }
+.badge-stamina { background: #44cc44; }
+.badge-balance { background: #cc88ff; }
+</style>
+</head>
+<body>
+<h1>BeyBattle Admin Panel</h1>
+<div id="loading">Loading...</div>
+<div id="content" style="display:none;">
+    <div class="stats-grid" id="stats-grid"></div>
+    <h2>Active Rooms</h2>
+    <table id="rooms-table"><thead><tr><th>Code</th><th>State</th><th>Players</th><th>Age</th><th>Action</th></tr></thead><tbody></tbody></table>
+    <h2>Battle History (Last 50)</h2>
+    <table id="history-table"><thead><tr><th>Room</th><th>P1</th><th>P2</th><th>Winner</th><th>Finish</th><th>Duration</th><th>Date</th></tr></thead><tbody></tbody></table>
+    <h2>Top Beyblades</h2>
+    <table id="top-table"><thead><tr><th>#</th><th>Blade</th><th>Uses</th></tr></thead><tbody></tbody></table>
+    <h2>Bug Reports</h2>
+    <table id="bugs-table"><thead><tr><th>ID</th><th>Player</th><th>Description</th><th>Date</th></tr></thead><tbody></tbody></table>
+</div>
+<script>
+const KEY = new URLSearchParams(location.search).get('k') || '';
+const BASE = '';
+
+async function fetchAPI(endpoint) {
+    const sep = endpoint.includes('?') ? '&' : '?';
+    const res = await fetch(`${BASE}/api/admin/${endpoint}${sep}k=${KEY}`);
+    if (!res.ok) throw new Error(`${res.status}`);
+    return res.json();
+}
+
+function finishType(t) {
+    if (t === 'burst') return '<span class="burst">BURST</span>';
+    if (t === 'xtreme') return '<span class="xtreme">XTREME</span>';
+    return '<span class="spin">SPIN</span>';
+}
+
+function formatDuration(sec) {
+    if (!sec) return '-';
+    return `${Math.floor(sec/60)}m ${sec%60}s`;
+}
+
+function formatDate(ts) {
+    if (!ts) return '-';
+    const d = new Date(ts * 1000);
+    return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+}
+
+async function refresh() {
+    try {
+        const [stats, rooms, history, bugs] = await Promise.all([
+            fetchAPI('stats'), fetchAPI('rooms'), fetchAPI('history'), fetchAPI('bugs')
+        ]);
+
+        // Stats cards
+        const grid = document.getElementById('stats-grid');
+        grid.innerHTML = [
+            {v: stats.total_games || 0, l: 'Total Battles'},
+            {v: stats.active_rooms || 0, l: 'Active Rooms'},
+            {v: stats.avg_duration ? formatDuration(Math.round(stats.avg_duration)) : '-', l: 'Avg Duration'},
+            {v: stats.total_players || 0, l: 'Total Players'},
+        ].map(s => `<div class="stat-card"><div class="value">${s.v}</div><div class="label">${s.l}</div></div>`).join('');
+
+        // Rooms
+        const rtb = document.querySelector('#rooms-table tbody');
+        rtb.innerHTML = (rooms || []).map(r => `<tr>
+            <td>${r.code}</td><td>${r.state}</td><td>${r.players || '-'}</td>
+            <td>${r.age || '-'}</td>
+            <td><button class="btn" onclick="closeRoom('${r.code}')">Close</button></td>
+        </tr>`).join('') || '<tr><td colspan="5">No active rooms</td></tr>';
+
+        // History
+        const htb = document.querySelector('#history-table tbody');
+        htb.innerHTML = (history || []).map(g => `<tr>
+            <td>${g.room_code || '-'}</td>
+            <td>${g.player1_name}</td><td>${g.player2_name}</td>
+            <td>${g.winner === 1 ? g.player1_name : g.player2_name}</td>
+            <td>${finishType(g.finish_type)}</td>
+            <td>${formatDuration(g.duration_sec)}</td>
+            <td>${formatDate(g.finished_at)}</td>
+        </tr>`).join('') || '<tr><td colspan="7">No battles yet</td></tr>';
+
+        // Top beyblades
+        const ttb = document.querySelector('#top-table tbody');
+        ttb.innerHTML = (stats.top_beyblades || []).map((b, i) => `<tr>
+            <td>${i+1}</td><td>${b.name}</td><td>${b.count}</td>
+        </tr>`).join('') || '<tr><td colspan="3">No data</td></tr>';
+
+        // Bugs
+        const btb = document.querySelector('#bugs-table tbody');
+        btb.innerHTML = (bugs || []).map(b => `<tr>
+            <td>${b.id}</td><td>${b.username}</td>
+            <td>${(b.description || '').substring(0, 100)}</td>
+            <td>${formatDate(b.submitted_at)}</td>
+        </tr>`).join('') || '<tr><td colspan="4">No bug reports</td></tr>';
+
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('content').style.display = 'block';
+    } catch (e) {
+        document.getElementById('loading').innerHTML = `<div class="error">Error: ${e.message}. Check admin key.</div>`;
+    }
+}
+
+async function closeRoom(code) {
+    if (!confirm(`Close room ${code}?`)) return;
+    await fetchAPI(`rooms/${code}?action=close`);
+    refresh();
+}
+
+refresh();
+setInterval(refresh, 15000);
+</script>
+</body>
+</html>

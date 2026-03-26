@@ -1,0 +1,15 @@
+[Unit]
+Description=BeyBattle
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/beybattle
+ExecStart=/usr/bin/python3 /opt/beybattle/server.py
+Restart=always
+RestartSec=3
+Environment=BEYBATTLE_PORT=5053
+Environment=BEYBATTLE_ADMIN_KEY=bb-admin-2026
+
+[Install]
+WantedBy=multi-user.target

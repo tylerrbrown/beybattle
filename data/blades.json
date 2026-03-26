@@ -1,0 +1,682 @@
+[
+  {
+    "id": "dran_sword",
+    "name": "Dran Sword",
+    "type": "attack",
+    "element": "fire",
+    "base_stats": {
+      "attack": 82,
+      "defense": 28,
+      "stamina": 30,
+      "speed": 75,
+      "burst_resist": 25
+    },
+    "special_move": "ember_rush",
+    "weight": 28,
+    "rarity": "rare",
+    "description": "A dragon-forged blade that cleaves through opponents with searing flame."
+  },
+  {
+    "id": "hells_scythe",
+    "name": "Hells Scythe",
+    "type": "attack",
+    "element": "dark",
+    "base_stats": {
+      "attack": 93,
+      "defense": 28,
+      "stamina": 35,
+      "speed": 80,
+      "burst_resist": 25
+    },
+    "special_move": "shadow_rift",
+    "weight": 30,
+    "rarity": "legendary",
+    "description": "Harvests the stadium with merciless arcs of shadow energy. Few survive its onslaught."
+  },
+  {
+    "id": "wizard_arrow",
+    "name": "Wizard Arrow",
+    "type": "attack",
+    "element": "wind",
+    "base_stats": {
+      "attack": 75,
+      "defense": 22,
+      "stamina": 32,
+      "speed": 82,
+      "burst_resist": 20
+    },
+    "special_move": "gale_cutter",
+    "weight": 24,
+    "rarity": "uncommon",
+    "description": "Precision-guided strikes powered by ancient wind magic. Speed is its doctrine."
+  },
+  {
+    "id": "knight_shield",
+    "name": "Knight Shield",
+    "type": "defense",
+    "element": "earth",
+    "base_stats": {
+      "attack": 30,
+      "defense": 88,
+      "stamina": 55,
+      "speed": 22,
+      "burst_resist": 90
+    },
+    "special_move": "iron_wall",
+    "weight": 38,
+    "rarity": "rare",
+    "description": "An immovable guardian forged from ancient stone. Holds the center like a castle gate."
+  },
+  {
+    "id": "shark_edge",
+    "name": "Shark Edge",
+    "type": "attack",
+    "element": "water",
+    "base_stats": {
+      "attack": 78,
+      "defense": 25,
+      "stamina": 28,
+      "speed": 78,
+      "burst_resist": 22
+    },
+    "special_move": "whirlpool_bind",
+    "weight": 27,
+    "rarity": "uncommon",
+    "description": "Razor-edged fins cut through defenses with the ferocity of a feeding frenzy."
+  },
+  {
+    "id": "phoenix_wing",
+    "name": "Phoenix Wing",
+    "type": "stamina",
+    "element": "fire",
+    "base_stats": {
+      "attack": 30,
+      "defense": 45,
+      "stamina": 85,
+      "speed": 48,
+      "burst_resist": 52
+    },
+    "special_move": "inferno_blast",
+    "weight": 32,
+    "rarity": "rare",
+    "description": "Burns longest when all others have fallen. Regenerative spin pattern defies exhaustion."
+  },
+  {
+    "id": "unicorn_sting",
+    "name": "Unicorn Sting",
+    "type": "attack",
+    "element": "light",
+    "base_stats": {
+      "attack": 73,
+      "defense": 18,
+      "stamina": 35,
+      "speed": 72,
+      "burst_resist": 28
+    },
+    "special_move": "radiant_nova",
+    "weight": 25,
+    "rarity": "common",
+    "description": "A single devastating horn strike channels pure light into each collision."
+  },
+  {
+    "id": "cobra",
+    "name": "Cobra",
+    "type": "stamina",
+    "element": "dark",
+    "base_stats": {
+      "attack": 25,
+      "defense": 42,
+      "stamina": 80,
+      "speed": 45,
+      "burst_resist": 48
+    },
+    "special_move": "void_drain",
+    "weight": 30,
+    "rarity": "common",
+    "description": "Patient and deadly. Coils its spin pattern to outlast even the most aggressive foes."
+  },
+  {
+    "id": "rhino",
+    "name": "Rhino",
+    "type": "defense",
+    "element": "earth",
+    "base_stats": {
+      "attack": 35,
+      "defense": 78,
+      "stamina": 48,
+      "speed": 20,
+      "burst_resist": 80
+    },
+    "special_move": "terra_smash",
+    "weight": 39,
+    "rarity": "common",
+    "description": "Thick armored plating absorbs punishment. Built to endure, not to chase."
+  },
+  {
+    "id": "leon_claw",
+    "name": "Leon Claw",
+    "type": "attack",
+    "element": "lightning",
+    "base_stats": {
+      "attack": 80,
+      "defense": 22,
+      "stamina": 33,
+      "speed": 76,
+      "burst_resist": 24
+    },
+    "special_move": "chain_lightning",
+    "weight": 27,
+    "rarity": "uncommon",
+    "description": "Electrified talons rake across the stadium in crackling arcs of destruction."
+  },
+  {
+    "id": "viper_tail",
+    "name": "Viper Tail",
+    "type": "balance",
+    "element": "dark",
+    "base_stats": {
+      "attack": 58,
+      "defense": 52,
+      "stamina": 55,
+      "speed": 60,
+      "burst_resist": 50
+    },
+    "special_move": "dark_pulse",
+    "weight": 31,
+    "rarity": "common",
+    "description": "Whip-like attacks from unpredictable angles. Adapts to any opponent's rhythm."
+  },
+  {
+    "id": "dran_buster",
+    "name": "Dran Buster",
+    "type": "attack",
+    "element": "fire",
+    "base_stats": {
+      "attack": 94,
+      "defense": 26,
+      "stamina": 32,
+      "speed": 82,
+      "burst_resist": 24
+    },
+    "special_move": "eruption_drive",
+    "weight": 29,
+    "rarity": "legendary",
+    "description": "The evolved Dran line pushed to its limit. Overwhelming power at the cost of everything else."
+  },
+  {
+    "id": "hells_chain",
+    "name": "Hells Chain",
+    "type": "defense",
+    "element": "dark",
+    "base_stats": {
+      "attack": 28,
+      "defense": 85,
+      "stamina": 52,
+      "speed": 25,
+      "burst_resist": 88
+    },
+    "special_move": "tidal_crush",
+    "weight": 37,
+    "rarity": "rare",
+    "description": "Dark chains anchor this blade to the stadium center. Escape is not an option."
+  },
+  {
+    "id": "tyranno_beat",
+    "name": "Tyranno Beat",
+    "type": "attack",
+    "element": "earth",
+    "base_stats": {
+      "attack": 85,
+      "defense": 30,
+      "stamina": 28,
+      "speed": 70,
+      "burst_resist": 32
+    },
+    "special_move": "quake_wall",
+    "weight": 34,
+    "rarity": "rare",
+    "description": "Prehistoric fury in every impact. Shakes the stadium with bone-crushing force."
+  },
+  {
+    "id": "eagle_dive",
+    "name": "Eagle Dive",
+    "type": "stamina",
+    "element": "wind",
+    "base_stats": {
+      "attack": 22,
+      "defense": 40,
+      "stamina": 82,
+      "speed": 50,
+      "burst_resist": 45
+    },
+    "special_move": "cyclone_shield",
+    "weight": 23,
+    "rarity": "common",
+    "description": "Aerodynamic blade design reduces drag for unmatched rotational endurance."
+  },
+  {
+    "id": "kraken_abyss",
+    "name": "Kraken Abyss",
+    "type": "defense",
+    "element": "water",
+    "base_stats": {
+      "attack": 25,
+      "defense": 82,
+      "stamina": 50,
+      "speed": 18,
+      "burst_resist": 82
+    },
+    "special_move": "storm_surge",
+    "weight": 40,
+    "rarity": "uncommon",
+    "description": "Tentacle-inspired contact points grip the stadium and smother enemy rotations."
+  },
+  {
+    "id": "wolf_howl",
+    "name": "Wolf Howl",
+    "type": "balance",
+    "element": "ice",
+    "base_stats": {
+      "attack": 55,
+      "defense": 55,
+      "stamina": 58,
+      "speed": 56,
+      "burst_resist": 52
+    },
+    "special_move": "frost_fang",
+    "weight": 30,
+    "rarity": "common",
+    "description": "Pack hunter mentality in blade form. Balanced approach that punishes overcommitment."
+  },
+  {
+    "id": "scorpion_strike",
+    "name": "Scorpion Strike",
+    "type": "stamina",
+    "element": "earth",
+    "base_stats": {
+      "attack": 28,
+      "defense": 42,
+      "stamina": 78,
+      "speed": 48,
+      "burst_resist": 45
+    },
+    "special_move": "blizzard_veil",
+    "weight": 29,
+    "rarity": "common",
+    "description": "A curved stinger blade delivers patient, wearing strikes that sap enemy rotation over time."
+  },
+  {
+    "id": "gryphon_crest",
+    "name": "Gryphon Crest",
+    "type": "balance",
+    "element": "light",
+    "base_stats": {
+      "attack": 60,
+      "defense": 58,
+      "stamina": 56,
+      "speed": 62,
+      "burst_resist": 55
+    },
+    "special_move": "prism_break",
+    "weight": 33,
+    "rarity": "uncommon",
+    "description": "Regal hybrid design combines aerial agility with grounded stability."
+  },
+  {
+    "id": "drake_fang",
+    "name": "Drake Fang",
+    "type": "attack",
+    "element": "fire",
+    "base_stats": {
+      "attack": 74,
+      "defense": 20,
+      "stamina": 30,
+      "speed": 70,
+      "burst_resist": 22
+    },
+    "special_move": "burst_breaker",
+    "weight": 26,
+    "rarity": "common",
+    "description": "Young dragon ferocity channeled into rapid-fire contact points."
+  },
+  {
+    "id": "turtle_fortress",
+    "name": "Turtle Fortress",
+    "type": "defense",
+    "element": "water",
+    "base_stats": {
+      "attack": 18,
+      "defense": 75,
+      "stamina": 55,
+      "speed": 15,
+      "burst_resist": 78
+    },
+    "special_move": "static_field",
+    "weight": 40,
+    "rarity": "common",
+    "description": "Near-impenetrable shell geometry. Sacrifices all mobility for pure survivability."
+  },
+  {
+    "id": "garuda_gale",
+    "name": "Garuda Gale",
+    "type": "stamina",
+    "element": "wind",
+    "base_stats": {
+      "attack": 28,
+      "defense": 48,
+      "stamina": 88,
+      "speed": 52,
+      "burst_resist": 55
+    },
+    "special_move": "impact_flash",
+    "weight": 25,
+    "rarity": "rare",
+    "description": "Divine wind spirit sustains rotation through channeled air currents around the blade."
+  },
+  {
+    "id": "mammoth_press",
+    "name": "Mammoth Press",
+    "type": "defense",
+    "element": "ice",
+    "base_stats": {
+      "attack": 38,
+      "defense": 80,
+      "stamina": 45,
+      "speed": 18,
+      "burst_resist": 85
+    },
+    "special_move": "glacial_slow",
+    "weight": 40,
+    "rarity": "uncommon",
+    "description": "Ice-age mass bears down on challengers. Sheer weight makes displacement nearly impossible."
+  },
+  {
+    "id": "hydra_fang",
+    "name": "Hydra Fang",
+    "type": "stamina",
+    "element": "water",
+    "base_stats": {
+      "attack": 30,
+      "defense": 45,
+      "stamina": 78,
+      "speed": 42,
+      "burst_resist": 50
+    },
+    "special_move": "thunder_lance",
+    "weight": 32,
+    "rarity": "common",
+    "description": "Multiple contact heads sap enemy rotation. Cut one down and another takes its place."
+  },
+  {
+    "id": "cerberus_bite",
+    "name": "Cerberus Bite",
+    "type": "balance",
+    "element": "dark",
+    "base_stats": {
+      "attack": 62,
+      "defense": 56,
+      "stamina": 52,
+      "speed": 55,
+      "burst_resist": 58
+    },
+    "special_move": "critical_smash",
+    "weight": 34,
+    "rarity": "uncommon",
+    "description": "Three-headed blade design attacks from multiple vectors simultaneously."
+  },
+  {
+    "id": "falcon_rush",
+    "name": "Falcon Rush",
+    "type": "stamina",
+    "element": "wind",
+    "base_stats": {
+      "attack": 25,
+      "defense": 45,
+      "stamina": 84,
+      "speed": 50,
+      "burst_resist": 52
+    },
+    "special_move": "xtreme_burst",
+    "weight": 21,
+    "rarity": "uncommon",
+    "description": "Soaring aerodynamic design maintains altitude and spin through sustained gliding patterns."
+  },
+  {
+    "id": "golem_wall",
+    "name": "Golem Wall",
+    "type": "defense",
+    "element": "earth",
+    "base_stats": {
+      "attack": 22,
+      "defense": 90,
+      "stamina": 48,
+      "speed": 15,
+      "burst_resist": 92
+    },
+    "special_move": "dark_pulse",
+    "weight": 40,
+    "rarity": "rare",
+    "description": "Living stone that reforms after every hit. The stadium floor itself seems to reinforce it."
+  },
+  {
+    "id": "panther_slash",
+    "name": "Panther Slash",
+    "type": "attack",
+    "element": "dark",
+    "base_stats": {
+      "attack": 80,
+      "defense": 20,
+      "stamina": 30,
+      "speed": 82,
+      "burst_resist": 22
+    },
+    "special_move": "inferno_blast",
+    "weight": 25,
+    "rarity": "uncommon",
+    "description": "Strikes from blind spots with lethal precision. You never see the hit that finishes you."
+  },
+  {
+    "id": "leviathan_coil",
+    "name": "Leviathan Coil",
+    "type": "stamina",
+    "element": "water",
+    "base_stats": {
+      "attack": 35,
+      "defense": 52,
+      "stamina": 92,
+      "speed": 50,
+      "burst_resist": 58
+    },
+    "special_move": "blizzard_veil",
+    "weight": 35,
+    "rarity": "legendary",
+    "description": "Sea serpent of myth given blade form. Its spin seems endless, like ocean currents that never still."
+  },
+  {
+    "id": "bear_hammer",
+    "name": "Bear Hammer",
+    "type": "defense",
+    "element": "earth",
+    "base_stats": {
+      "attack": 40,
+      "defense": 76,
+      "stamina": 42,
+      "speed": 20,
+      "burst_resist": 75
+    },
+    "special_move": "dark_pulse",
+    "weight": 38,
+    "rarity": "common",
+    "description": "Raw defensive bulk with enough bite to punish reckless attackers on the counter."
+  },
+  {
+    "id": "sphinx_riddle",
+    "name": "Sphinx Riddle",
+    "type": "balance",
+    "element": "light",
+    "base_stats": {
+      "attack": 52,
+      "defense": 60,
+      "stamina": 62,
+      "speed": 50,
+      "burst_resist": 55
+    },
+    "special_move": "frost_fang",
+    "weight": 33,
+    "rarity": "uncommon",
+    "description": "Unpredictable spin patterns confuse opponents. Shifts between aggressive and passive modes."
+  },
+  {
+    "id": "tiger_lance",
+    "name": "Tiger Lance",
+    "type": "attack",
+    "element": "lightning",
+    "base_stats": {
+      "attack": 84,
+      "defense": 25,
+      "stamina": 28,
+      "speed": 78,
+      "burst_resist": 26
+    },
+    "special_move": "storm_surge",
+    "weight": 28,
+    "rarity": "rare",
+    "description": "Electrified lance tip delivers paralyzing blows that lock enemy rotation on contact."
+  },
+  {
+    "id": "owl_sage",
+    "name": "Owl Sage",
+    "type": "stamina",
+    "element": "wind",
+    "base_stats": {
+      "attack": 20,
+      "defense": 40,
+      "stamina": 82,
+      "speed": 45,
+      "burst_resist": 48
+    },
+    "special_move": "glacial_slow",
+    "weight": 24,
+    "rarity": "common",
+    "description": "Near-silent rotation conserves energy while opponents waste theirs chasing contact."
+  },
+  {
+    "id": "tusk_mammoth",
+    "name": "Tusk Mammoth",
+    "type": "defense",
+    "element": "ice",
+    "base_stats": {
+      "attack": 32,
+      "defense": 74,
+      "stamina": 52,
+      "speed": 18,
+      "burst_resist": 76
+    },
+    "special_move": "cyclone_shield",
+    "weight": 39,
+    "rarity": "common",
+    "description": "Frozen tusks deflect incoming attacks while preserving core rotation."
+  },
+  {
+    "id": "chimera_flux",
+    "name": "Chimera Flux",
+    "type": "balance",
+    "element": "fire",
+    "base_stats": {
+      "attack": 65,
+      "defense": 55,
+      "stamina": 54,
+      "speed": 58,
+      "burst_resist": 56
+    },
+    "special_move": "eruption_drive",
+    "weight": 32,
+    "rarity": "uncommon",
+    "description": "Multi-beast fusion shifts weight distribution mid-battle. Never the same fight twice."
+  },
+  {
+    "id": "stingray_glide",
+    "name": "Stingray Glide",
+    "type": "stamina",
+    "element": "water",
+    "base_stats": {
+      "attack": 22,
+      "defense": 48,
+      "stamina": 80,
+      "speed": 50,
+      "burst_resist": 45
+    },
+    "special_move": "thunder_lance",
+    "weight": 26,
+    "rarity": "common",
+    "description": "Flat hydrodynamic profile hugs the stadium floor and maintains rotation through fluid motion."
+  },
+  {
+    "id": "wyvern_gust",
+    "name": "Wyvern Gust",
+    "type": "balance",
+    "element": "wind",
+    "base_stats": {
+      "attack": 58,
+      "defense": 52,
+      "stamina": 55,
+      "speed": 65,
+      "burst_resist": 48
+    },
+    "special_move": "shadow_rift",
+    "weight": 28,
+    "rarity": "common",
+    "description": "Light and agile with decent staying power. A versatile starter for any blader."
+  },
+  {
+    "id": "basilisk_gaze",
+    "name": "Basilisk Gaze",
+    "type": "defense",
+    "element": "dark",
+    "base_stats": {
+      "attack": 30,
+      "defense": 84,
+      "stamina": 58,
+      "speed": 22,
+      "burst_resist": 85
+    },
+    "special_move": "blizzard_veil",
+    "weight": 37,
+    "rarity": "uncommon",
+    "description": "Opponents slow and stall against its heavy defensive presence, as if turned to stone."
+  },
+  {
+    "id": "pegasus_storm",
+    "name": "Pegasus Storm",
+    "type": "balance",
+    "element": "lightning",
+    "base_stats": {
+      "attack": 60,
+      "defense": 50,
+      "stamina": 55,
+      "speed": 68,
+      "burst_resist": 52
+    },
+    "special_move": "cyclone_shield",
+    "weight": 29,
+    "rarity": "uncommon",
+    "description": "Winged horse charges through the stadium trailing sparks. Speed-biased balance type."
+  },
+  {
+    "id": "jaguar_frenzy",
+    "name": "Jaguar Frenzy",
+    "type": "attack",
+    "element": "lightning",
+    "base_stats": {
+      "attack": 70,
+      "defense": 18,
+      "stamina": 32,
+      "speed": 75,
+      "burst_resist": 20
+    },
+    "special_move": "terra_smash",
+    "weight": 24,
+    "rarity": "common",
+    "description": "Rapid multi-hit blade pattern overwhelms with volume. Each strike sparks on contact."
+  }
+]

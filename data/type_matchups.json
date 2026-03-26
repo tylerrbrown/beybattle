@@ -1,0 +1,6 @@
+{
+  "attack":  { "attack": 1.0, "defense": 0.6, "stamina": 1.5, "balance": 1.0 },
+  "defense": { "attack": 1.3, "defense": 1.0, "stamina": 0.7, "balance": 1.0 },
+  "stamina": { "attack": 0.7, "defense": 1.2, "stamina": 1.0, "balance": 1.0 },
+  "balance": { "attack": 1.0, "defense": 1.0, "stamina": 1.0, "balance": 1.0 }
+}

@@ -1,0 +1,82 @@
+{
+  "fire": {
+    "fire": 1.0,
+    "water": 1.0,
+    "wind": 1.5,
+    "earth": 0.5,
+    "lightning": 1.0,
+    "ice": 1.5,
+    "dark": 1.0,
+    "light": 0.5
+  },
+  "water": {
+    "fire": 1.0,
+    "water": 1.0,
+    "wind": 0.5,
+    "earth": 1.0,
+    "lightning": 1.5,
+    "ice": 0.5,
+    "dark": 1.5,
+    "light": 1.0
+  },
+  "wind": {
+    "fire": 0.5,
+    "water": 1.5,
+    "wind": 1.0,
+    "earth": 1.0,
+    "lightning": 1.5,
+    "ice": 0.5,
+    "dark": 1.0,
+    "light": 1.0
+  },
+  "earth": {
+    "fire": 1.5,
+    "water": 1.0,
+    "wind": 1.0,
+    "earth": 1.0,
+    "lightning": 0.5,
+    "ice": 1.0,
+    "dark": 0.5,
+    "light": 1.5
+  },
+  "lightning": {
+    "fire": 1.0,
+    "water": 0.5,
+    "wind": 0.5,
+    "earth": 1.5,
+    "lightning": 1.0,
+    "ice": 1.0,
+    "dark": 1.5,
+    "light": 1.0
+  },
+  "ice": {
+    "fire": 0.5,
+    "water": 1.5,
+    "wind": 1.5,
+    "earth": 1.0,
+    "lightning": 1.0,
+    "ice": 1.0,
+    "dark": 1.0,
+    "light": 0.5
+  },
+  "dark": {
+    "fire": 1.0,
+    "water": 0.5,
+    "wind": 1.0,
+    "earth": 1.5,
+    "lightning": 0.5,
+    "ice": 1.0,
+    "dark": 1.0,
+    "light": 1.5
+  },
+  "light": {
+    "fire": 1.5,
+    "water": 1.0,
+    "wind": 1.0,
+    "earth": 0.5,
+    "lightning": 1.0,
+    "ice": 1.5,
+    "dark": 0.5,
+    "light": 1.0
+  }
+}

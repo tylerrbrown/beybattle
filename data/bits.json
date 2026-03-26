@@ -1,0 +1,322 @@
+[
+  {
+    "id": "flat",
+    "name": "Flat",
+    "movement": "aggressive",
+    "base_stats": {
+      "attack": 12,
+      "defense": 4,
+      "stamina": 6,
+      "speed": 22,
+      "burst_resist": 3
+    },
+    "stamina_drain": 1.6,
+    "weight": 4,
+    "rarity": "common",
+    "description": "Wide flat tip for maximum speed and aggressive movement. Burns stamina fast."
+  },
+  {
+    "id": "ball",
+    "name": "Ball",
+    "movement": "defensive",
+    "base_stats": {
+      "attack": 4,
+      "defense": 12,
+      "stamina": 18,
+      "speed": 8,
+      "burst_resist": 6
+    },
+    "stamina_drain": 0.7,
+    "weight": 5,
+    "rarity": "common",
+    "description": "Spherical tip that rolls with impacts. Stable and stamina-efficient."
+  },
+  {
+    "id": "needle",
+    "name": "Needle",
+    "movement": "stamina",
+    "base_stats": {
+      "attack": 3,
+      "defense": 6,
+      "stamina": 24,
+      "speed": 5,
+      "burst_resist": 4
+    },
+    "stamina_drain": 0.5,
+    "weight": 3,
+    "rarity": "common",
+    "description": "Ultra-fine point with minimal friction. Spins in place for maximum stamina conservation."
+  },
+  {
+    "id": "accel",
+    "name": "Accel",
+    "movement": "aggressive",
+    "base_stats": {
+      "attack": 14,
+      "defense": 3,
+      "stamina": 4,
+      "speed": 25,
+      "burst_resist": 2
+    },
+    "stamina_drain": 1.8,
+    "weight": 4,
+    "rarity": "uncommon",
+    "description": "Acceleration-focused tip that builds speed through the battle. Devastating but short-lived."
+  },
+  {
+    "id": "rush",
+    "name": "Rush",
+    "movement": "aggressive",
+    "base_stats": {
+      "attack": 15,
+      "defense": 2,
+      "stamina": 3,
+      "speed": 24,
+      "burst_resist": 2
+    },
+    "stamina_drain": 1.9,
+    "weight": 4,
+    "rarity": "uncommon",
+    "description": "Extreme attack tip that charges relentlessly. All offense, no defense."
+  },
+  {
+    "id": "taper",
+    "name": "Taper",
+    "movement": "stamina",
+    "base_stats": {
+      "attack": 5,
+      "defense": 8,
+      "stamina": 22,
+      "speed": 6,
+      "burst_resist": 5
+    },
+    "stamina_drain": 0.6,
+    "weight": 4,
+    "rarity": "common",
+    "description": "Gradually narrowing tip that balances stability with low friction. Outlasts most opponents."
+  },
+  {
+    "id": "spike",
+    "name": "Spike",
+    "movement": "stamina",
+    "base_stats": {
+      "attack": 4,
+      "defense": 5,
+      "stamina": 25,
+      "speed": 4,
+      "burst_resist": 3
+    },
+    "stamina_drain": 0.5,
+    "weight": 3,
+    "rarity": "common",
+    "description": "Sharp pointed tip for pure stamina play. Minimal contact with the stadium floor."
+  },
+  {
+    "id": "point",
+    "name": "Point",
+    "movement": "defensive",
+    "base_stats": {
+      "attack": 5,
+      "defense": 10,
+      "stamina": 20,
+      "speed": 7,
+      "burst_resist": 5
+    },
+    "stamina_drain": 0.8,
+    "weight": 4,
+    "rarity": "common",
+    "description": "Rounded point that stays centered. Good stamina with decent defensive behavior."
+  },
+  {
+    "id": "metal_needle",
+    "name": "Metal Needle",
+    "movement": "stamina",
+    "base_stats": {
+      "attack": 4,
+      "defense": 8,
+      "stamina": 25,
+      "speed": 5,
+      "burst_resist": 7
+    },
+    "stamina_drain": 0.5,
+    "weight": 6,
+    "rarity": "rare",
+    "description": "Metal-coated needle tip. Heavier than standard Needle with superior stamina and durability."
+  },
+  {
+    "id": "high_needle",
+    "name": "High Needle",
+    "movement": "stamina",
+    "base_stats": {
+      "attack": 3,
+      "defense": 7,
+      "stamina": 23,
+      "speed": 4,
+      "burst_resist": 4
+    },
+    "stamina_drain": 0.55,
+    "weight": 4,
+    "rarity": "uncommon",
+    "description": "Elevated needle tip that raises the center of gravity. Great stamina at the cost of stability."
+  },
+  {
+    "id": "low_flat",
+    "name": "Low Flat",
+    "movement": "aggressive",
+    "base_stats": {
+      "attack": 13,
+      "defense": 6,
+      "stamina": 8,
+      "speed": 20,
+      "burst_resist": 4
+    },
+    "stamina_drain": 1.4,
+    "weight": 5,
+    "rarity": "common",
+    "description": "Low-profile flat tip. More stable than standard Flat with slightly less speed."
+  },
+  {
+    "id": "xtreme",
+    "name": "Xtreme",
+    "movement": "aggressive",
+    "base_stats": {
+      "attack": 15,
+      "defense": 1,
+      "stamina": 2,
+      "speed": 25,
+      "burst_resist": 1
+    },
+    "stamina_drain": 2.0,
+    "weight": 4,
+    "rarity": "rare",
+    "description": "The most aggressive tip ever made. Insane speed and attack power but drains stamina almost instantly."
+  },
+  {
+    "id": "orbit",
+    "name": "Orbit",
+    "movement": "defensive",
+    "base_stats": {
+      "attack": 6,
+      "defense": 14,
+      "stamina": 16,
+      "speed": 10,
+      "burst_resist": 8
+    },
+    "stamina_drain": 0.8,
+    "weight": 6,
+    "rarity": "uncommon",
+    "description": "Free-spinning ball tip that absorbs impacts. Excellent defensive capability with good stamina."
+  },
+  {
+    "id": "unite",
+    "name": "Unite",
+    "movement": "defensive",
+    "base_stats": {
+      "attack": 3,
+      "defense": 15,
+      "stamina": 18,
+      "speed": 6,
+      "burst_resist": 9
+    },
+    "stamina_drain": 0.6,
+    "weight": 7,
+    "rarity": "rare",
+    "description": "Rubber-coated defensive tip. Grips the stadium and absorbs hits. The ultimate wall."
+  },
+  {
+    "id": "gear_flat",
+    "name": "Gear Flat",
+    "movement": "erratic",
+    "base_stats": {
+      "attack": 10,
+      "defense": 8,
+      "stamina": 10,
+      "speed": 18,
+      "burst_resist": 5
+    },
+    "stamina_drain": 1.1,
+    "weight": 5,
+    "rarity": "uncommon",
+    "description": "Gear-shaped flat tip. Shifts between aggressive and stable movement unpredictably."
+  },
+  {
+    "id": "gear_ball",
+    "name": "Gear Ball",
+    "movement": "erratic",
+    "base_stats": {
+      "attack": 8,
+      "defense": 10,
+      "stamina": 14,
+      "speed": 14,
+      "burst_resist": 6
+    },
+    "stamina_drain": 0.9,
+    "weight": 6,
+    "rarity": "uncommon",
+    "description": "Gear-edged ball tip. Alternates between defensive and aggressive patterns mid-battle."
+  },
+  {
+    "id": "helix",
+    "name": "Helix",
+    "movement": "erratic",
+    "base_stats": {
+      "attack": 9,
+      "defense": 7,
+      "stamina": 12,
+      "speed": 16,
+      "burst_resist": 4
+    },
+    "stamina_drain": 1.2,
+    "weight": 5,
+    "rarity": "common",
+    "description": "Spiral-grooved tip that traces unpredictable paths. Hard to predict, hard to counter."
+  },
+  {
+    "id": "disc",
+    "name": "Disc",
+    "movement": "defensive",
+    "base_stats": {
+      "attack": 5,
+      "defense": 13,
+      "stamina": 17,
+      "speed": 9,
+      "burst_resist": 7
+    },
+    "stamina_drain": 0.7,
+    "weight": 6,
+    "rarity": "common",
+    "description": "Wide disc-shaped tip with high stability. Stays centered and resists knockback."
+  },
+  {
+    "id": "metal_coat",
+    "name": "Metal Coat",
+    "movement": "defensive",
+    "base_stats": {
+      "attack": 6,
+      "defense": 15,
+      "stamina": 15,
+      "speed": 7,
+      "burst_resist": 10
+    },
+    "stamina_drain": 0.9,
+    "weight": 8,
+    "rarity": "rare",
+    "description": "Fully metal-coated tip. Heaviest bit available with top-tier defense and burst resistance."
+  },
+  {
+    "id": "cycle",
+    "name": "Cycle",
+    "movement": "erratic",
+    "base_stats": {
+      "attack": 11,
+      "defense": 6,
+      "stamina": 8,
+      "speed": 20,
+      "burst_resist": 3
+    },
+    "stamina_drain": 1.3,
+    "weight": 4,
+    "rarity": "common",
+    "description": "Multi-surface tip that cycles between contact points. Speed shifts wildly throughout the fight."
+  }
+]

@@ -1,0 +1,306 @@
+{
+  "inferno_blast": {
+    "name": "Inferno Blast",
+    "element": "fire",
+    "category": "strike",
+    "power": 90,
+    "accuracy": 75,
+    "stamina_cost": 20,
+    "burst_power": 10,
+    "description": "Engulfs the stadium in flames, scorching the opponent's blade."
+  },
+  "tidal_crush": {
+    "name": "Tidal Crush",
+    "element": "water",
+    "category": "strike",
+    "power": 85,
+    "accuracy": 80,
+    "stamina_cost": 18,
+    "burst_power": 10,
+    "description": "A surging wave of force crashes into the opposing blade."
+  },
+  "gale_cutter": {
+    "name": "Gale Cutter",
+    "element": "wind",
+    "category": "strike",
+    "power": 80,
+    "accuracy": 85,
+    "stamina_cost": 16,
+    "burst_power": 5,
+    "description": "Razor-sharp wind slices through the stadium at blinding speed."
+  },
+  "terra_smash": {
+    "name": "Terra Smash",
+    "element": "earth",
+    "category": "strike",
+    "power": 95,
+    "accuracy": 70,
+    "stamina_cost": 22,
+    "burst_power": 15,
+    "description": "The ground trembles as a massive impact rattles the opponent."
+  },
+  "thunder_lance": {
+    "name": "Thunder Lance",
+    "element": "lightning",
+    "category": "strike",
+    "power": 88,
+    "accuracy": 78,
+    "stamina_cost": 19,
+    "burst_power": 12,
+    "description": "A bolt of electric fury strikes the opponent dead center."
+  },
+  "frost_fang": {
+    "name": "Frost Fang",
+    "element": "ice",
+    "category": "strike",
+    "power": 82,
+    "accuracy": 82,
+    "stamina_cost": 17,
+    "burst_power": 8,
+    "description": "Jagged ice shards tear into the opponent's rotation."
+  },
+  "shadow_rift": {
+    "name": "Shadow Rift",
+    "element": "dark",
+    "category": "strike",
+    "power": 92,
+    "accuracy": 72,
+    "stamina_cost": 21,
+    "burst_power": 12,
+    "description": "A rift of pure darkness opens beneath the enemy blade."
+  },
+  "radiant_nova": {
+    "name": "Radiant Nova",
+    "element": "light",
+    "category": "strike",
+    "power": 87,
+    "accuracy": 80,
+    "stamina_cost": 19,
+    "burst_power": 10,
+    "description": "A blinding flash of light overloads the opponent's defenses."
+  },
+
+  "eruption_drive": {
+    "name": "Eruption Drive",
+    "element": "fire",
+    "category": "strike",
+    "power": 75,
+    "accuracy": 82,
+    "stamina_cost": 15,
+    "burst_power": 8,
+    "description": "Superheated momentum drives the blade forward like a volcanic charge."
+  },
+  "whirlpool_bind": {
+    "name": "Whirlpool Bind",
+    "element": "water",
+    "category": "stamina_drain",
+    "power": 30,
+    "accuracy": 85,
+    "stamina_cost": 14,
+    "burst_power": 0,
+    "description": "Traps the opponent in a swirling vortex, sapping their spin."
+  },
+  "cyclone_shield": {
+    "name": "Cyclone Shield",
+    "element": "wind",
+    "category": "defense",
+    "power": 0,
+    "accuracy": 90,
+    "stamina_cost": 12,
+    "burst_power": 0,
+    "description": "A wall of spinning air deflects incoming attacks."
+  },
+  "quake_wall": {
+    "name": "Quake Wall",
+    "element": "earth",
+    "category": "defense",
+    "power": 0,
+    "accuracy": 92,
+    "stamina_cost": 13,
+    "burst_power": 0,
+    "description": "A barrier of stone and soil absorbs devastating hits."
+  },
+  "static_field": {
+    "name": "Static Field",
+    "element": "lightning",
+    "category": "status",
+    "power": 0,
+    "accuracy": 88,
+    "stamina_cost": 10,
+    "burst_power": 0,
+    "description": "An electric field disrupts the opponent's stability and rhythm."
+  },
+  "glacial_slow": {
+    "name": "Glacial Slow",
+    "element": "ice",
+    "category": "status",
+    "power": 0,
+    "accuracy": 90,
+    "stamina_cost": 11,
+    "burst_power": 0,
+    "description": "Creeping frost locks the opponent's rotation, reducing their speed."
+  },
+  "void_drain": {
+    "name": "Void Drain",
+    "element": "dark",
+    "category": "stamina_drain",
+    "power": 25,
+    "accuracy": 80,
+    "stamina_cost": 16,
+    "burst_power": 0,
+    "description": "Dark energy siphons spin power from the opponent's core."
+  },
+  "prism_break": {
+    "name": "Prism Break",
+    "element": "light",
+    "category": "strike",
+    "power": 70,
+    "accuracy": 85,
+    "stamina_cost": 14,
+    "burst_power": 5,
+    "description": "Refracted light focuses into a piercing beam of destruction."
+  },
+
+  "rush_launch": {
+    "name": "Rush Launch",
+    "element": "neutral",
+    "category": "strike",
+    "power": 40,
+    "accuracy": 90,
+    "stamina_cost": 8,
+    "burst_power": 5,
+    "description": "A quick, aggressive launch that catches the opponent off guard."
+  },
+  "spin_steal": {
+    "name": "Spin Steal",
+    "element": "neutral",
+    "category": "stamina_drain",
+    "power": 15,
+    "accuracy": 85,
+    "stamina_cost": 10,
+    "burst_power": 0,
+    "description": "Reverses contact friction to drain the opponent's rotational energy."
+  },
+  "guard_stance": {
+    "name": "Guard Stance",
+    "element": "neutral",
+    "category": "defense",
+    "power": 0,
+    "accuracy": 95,
+    "stamina_cost": 6,
+    "burst_power": 0,
+    "description": "Shifts to a low, stable position to weather incoming attacks."
+  },
+  "full_power": {
+    "name": "Full Power",
+    "element": "neutral",
+    "category": "strike",
+    "power": 50,
+    "accuracy": 80,
+    "stamina_cost": 12,
+    "burst_power": 8,
+    "description": "Channels all remaining energy into one decisive strike."
+  },
+
+  "xtreme_burst": {
+    "name": "Xtreme Burst",
+    "element": "neutral",
+    "category": "burst",
+    "power": 45,
+    "accuracy": 65,
+    "stamina_cost": 22,
+    "burst_power": 45,
+    "description": "An all-or-nothing impact designed to shatter the opponent's lock."
+  },
+  "burst_breaker": {
+    "name": "Burst Breaker",
+    "element": "neutral",
+    "category": "burst",
+    "power": 40,
+    "accuracy": 70,
+    "stamina_cost": 20,
+    "burst_power": 40,
+    "description": "Targets the opponent's weakest joint, forcing a burst finish."
+  },
+  "critical_smash": {
+    "name": "Critical Smash",
+    "element": "neutral",
+    "category": "burst",
+    "power": 50,
+    "accuracy": 60,
+    "stamina_cost": 25,
+    "burst_power": 50,
+    "description": "A devastating collision with maximum burst potential. Miss and you pay."
+  },
+  "impact_flash": {
+    "name": "Impact Flash",
+    "element": "light",
+    "category": "burst",
+    "power": 35,
+    "accuracy": 75,
+    "stamina_cost": 18,
+    "burst_power": 35,
+    "description": "A flash of light marks the point of impact as the lock gives way."
+  },
+
+  "iron_wall": {
+    "name": "Iron Wall",
+    "element": "earth",
+    "category": "defense",
+    "power": 0,
+    "accuracy": 95,
+    "stamina_cost": 10,
+    "burst_power": 0,
+    "description": "An immovable defensive stance that laughs at weak attacks."
+  },
+  "ember_rush": {
+    "name": "Ember Rush",
+    "element": "fire",
+    "category": "strike",
+    "power": 55,
+    "accuracy": 90,
+    "stamina_cost": 10,
+    "burst_power": 5,
+    "description": "A rapid series of fiery collisions that chip away at resistance."
+  },
+  "storm_surge": {
+    "name": "Storm Surge",
+    "element": "water",
+    "category": "strike",
+    "power": 60,
+    "accuracy": 88,
+    "stamina_cost": 12,
+    "burst_power": 5,
+    "description": "Rising water pressure builds into a forceful wave attack."
+  },
+  "chain_lightning": {
+    "name": "Chain Lightning",
+    "element": "lightning",
+    "category": "strike",
+    "power": 65,
+    "accuracy": 82,
+    "stamina_cost": 14,
+    "burst_power": 8,
+    "description": "Electric arcs bounce between contact points for sustained damage."
+  },
+  "blizzard_veil": {
+    "name": "Blizzard Veil",
+    "element": "ice",
+    "category": "defense",
+    "power": 0,
+    "accuracy": 88,
+    "stamina_cost": 14,
+    "burst_power": 0,
+    "description": "A freezing mist coats the blade, hardening its outer shell."
+  },
+  "dark_pulse": {
+    "name": "Dark Pulse",
+    "element": "dark",
+    "category": "status",
+    "power": 0,
+    "accuracy": 82,
+    "stamina_cost": 13,
+    "burst_power": 0,
+    "description": "A pulse of dark energy destabilizes the opponent's axis of rotation."
+  }
+}

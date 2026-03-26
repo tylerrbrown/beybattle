@@ -1,0 +1,322 @@
+[
+  {
+    "id": "1-60",
+    "name": "1-60",
+    "height": 3,
+    "teeth": 1,
+    "base_stats": {
+      "attack": 14,
+      "defense": 8,
+      "stamina": 6,
+      "speed": 8,
+      "burst_resist": 3
+    },
+    "weight": 8,
+    "rarity": "common",
+    "description": "Lightweight ratchet with minimal burst resistance. Fast but fragile under pressure."
+  },
+  {
+    "id": "2-60",
+    "name": "2-60",
+    "height": 3,
+    "teeth": 2,
+    "base_stats": {
+      "attack": 12,
+      "defense": 10,
+      "stamina": 8,
+      "speed": 7,
+      "burst_resist": 6
+    },
+    "weight": 9,
+    "rarity": "common",
+    "description": "Balanced low-profile ratchet. Decent all-around performer for beginners."
+  },
+  {
+    "id": "3-60",
+    "name": "3-60",
+    "height": 3,
+    "teeth": 3,
+    "base_stats": {
+      "attack": 10,
+      "defense": 14,
+      "stamina": 10,
+      "speed": 6,
+      "burst_resist": 10
+    },
+    "weight": 10,
+    "rarity": "common",
+    "description": "Standard three-tooth ratchet. Reliable burst resistance at a low height profile."
+  },
+  {
+    "id": "4-60",
+    "name": "4-60",
+    "height": 3,
+    "teeth": 4,
+    "base_stats": {
+      "attack": 8,
+      "defense": 16,
+      "stamina": 12,
+      "speed": 5,
+      "burst_resist": 14
+    },
+    "weight": 11,
+    "rarity": "common",
+    "description": "Four teeth lock in tight at low height. Strong defensive foundation for stamina builds."
+  },
+  {
+    "id": "5-60",
+    "name": "5-60",
+    "height": 3,
+    "teeth": 5,
+    "base_stats": {
+      "attack": 6,
+      "defense": 18,
+      "stamina": 14,
+      "speed": 4,
+      "burst_resist": 18
+    },
+    "weight": 12,
+    "rarity": "uncommon",
+    "description": "Five-tooth low ratchet with excellent burst resistance. Hard to knock apart."
+  },
+  {
+    "id": "2-70",
+    "name": "2-70",
+    "height": 3.5,
+    "teeth": 2,
+    "base_stats": {
+      "attack": 11,
+      "defense": 12,
+      "stamina": 9,
+      "speed": 6,
+      "burst_resist": 7
+    },
+    "weight": 10,
+    "rarity": "common",
+    "description": "Mid-height ratchet with two teeth. Slightly more defensive than its 60 counterpart."
+  },
+  {
+    "id": "3-70",
+    "name": "3-70",
+    "height": 3.5,
+    "teeth": 3,
+    "base_stats": {
+      "attack": 9,
+      "defense": 16,
+      "stamina": 12,
+      "speed": 5,
+      "burst_resist": 11
+    },
+    "weight": 11,
+    "rarity": "common",
+    "description": "Mid-height three-tooth design. Good balance between defense and mobility."
+  },
+  {
+    "id": "5-70",
+    "name": "5-70",
+    "height": 3.5,
+    "teeth": 5,
+    "base_stats": {
+      "attack": 5,
+      "defense": 20,
+      "stamina": 15,
+      "speed": 3,
+      "burst_resist": 20
+    },
+    "weight": 13,
+    "rarity": "uncommon",
+    "description": "Heavy mid-height ratchet. Five teeth make bursting nearly impossible."
+  },
+  {
+    "id": "7-70",
+    "name": "7-70",
+    "height": 3.5,
+    "teeth": 7,
+    "base_stats": {
+      "attack": 3,
+      "defense": 24,
+      "stamina": 16,
+      "speed": 2,
+      "burst_resist": 25
+    },
+    "weight": 15,
+    "rarity": "rare",
+    "description": "Seven-tooth fortress at mid-height. Maximum lock strength, almost unbustable."
+  },
+  {
+    "id": "1-80",
+    "name": "1-80",
+    "height": 4,
+    "teeth": 1,
+    "base_stats": {
+      "attack": 16,
+      "defense": 14,
+      "stamina": 8,
+      "speed": 7,
+      "burst_resist": 4
+    },
+    "weight": 10,
+    "rarity": "common",
+    "description": "Tall single-tooth ratchet. Great reach for aggressive upper attacks but easy to burst."
+  },
+  {
+    "id": "3-80",
+    "name": "3-80",
+    "height": 4,
+    "teeth": 3,
+    "base_stats": {
+      "attack": 10,
+      "defense": 20,
+      "stamina": 14,
+      "speed": 4,
+      "burst_resist": 12
+    },
+    "weight": 13,
+    "rarity": "common",
+    "description": "Tall three-tooth ratchet. High defensive wall with solid burst protection."
+  },
+  {
+    "id": "4-80",
+    "name": "4-80",
+    "height": 4,
+    "teeth": 4,
+    "base_stats": {
+      "attack": 8,
+      "defense": 22,
+      "stamina": 16,
+      "speed": 3,
+      "burst_resist": 16
+    },
+    "weight": 14,
+    "rarity": "uncommon",
+    "description": "High-profile four-tooth design. Punishing defense with strong stamina retention."
+  },
+  {
+    "id": "5-80",
+    "name": "5-80",
+    "height": 4,
+    "teeth": 5,
+    "base_stats": {
+      "attack": 6,
+      "defense": 24,
+      "stamina": 18,
+      "speed": 2,
+      "burst_resist": 22
+    },
+    "weight": 15,
+    "rarity": "uncommon",
+    "description": "Five teeth at max height. Defensive powerhouse that trades all speed for resilience."
+  },
+  {
+    "id": "6-60",
+    "name": "6-60",
+    "height": 3,
+    "teeth": 6,
+    "base_stats": {
+      "attack": 4,
+      "defense": 20,
+      "stamina": 15,
+      "speed": 3,
+      "burst_resist": 22
+    },
+    "weight": 13,
+    "rarity": "uncommon",
+    "description": "Six-tooth low ratchet. Exceptional burst lock at a compact height."
+  },
+  {
+    "id": "9-60",
+    "name": "9-60",
+    "height": 3,
+    "teeth": 9,
+    "base_stats": {
+      "attack": 2,
+      "defense": 26,
+      "stamina": 18,
+      "speed": 1,
+      "burst_resist": 30
+    },
+    "weight": 16,
+    "rarity": "rare",
+    "description": "Nine teeth crammed into a low profile. The ultimate burst lock - nothing gets through."
+  },
+  {
+    "id": "9-70",
+    "name": "9-70",
+    "height": 3.5,
+    "teeth": 9,
+    "base_stats": {
+      "attack": 2,
+      "defense": 28,
+      "stamina": 19,
+      "speed": 1,
+      "burst_resist": 28
+    },
+    "weight": 17,
+    "rarity": "rare",
+    "description": "Massive nine-tooth mid-height ratchet. Near-perfect burst resistance with solid defense."
+  },
+  {
+    "id": "4-70",
+    "name": "4-70",
+    "height": 3.5,
+    "teeth": 4,
+    "base_stats": {
+      "attack": 7,
+      "defense": 18,
+      "stamina": 13,
+      "speed": 4,
+      "burst_resist": 15
+    },
+    "weight": 12,
+    "rarity": "common",
+    "description": "Solid mid-height four-tooth ratchet. Dependable workhorse for balanced combos."
+  },
+  {
+    "id": "6-80",
+    "name": "6-80",
+    "height": 4,
+    "teeth": 6,
+    "base_stats": {
+      "attack": 4,
+      "defense": 26,
+      "stamina": 17,
+      "speed": 2,
+      "burst_resist": 24
+    },
+    "weight": 16,
+    "rarity": "uncommon",
+    "description": "Tall six-tooth ratchet. Massive defensive wall with heavy burst resistance."
+  },
+  {
+    "id": "9-80",
+    "name": "9-80",
+    "height": 4,
+    "teeth": 9,
+    "base_stats": {
+      "attack": 1,
+      "defense": 30,
+      "stamina": 20,
+      "speed": 1,
+      "burst_resist": 28
+    },
+    "weight": 18,
+    "rarity": "rare",
+    "description": "The heaviest ratchet in existence. Nine teeth at max height - an immovable object."
+  },
+  {
+    "id": "2-80",
+    "name": "2-80",
+    "height": 4,
+    "teeth": 2,
+    "base_stats": {
+      "attack": 13,
+      "defense": 16,
+      "stamina": 10,
+      "speed": 6,
+      "burst_resist": 8
+    },
+    "weight": 11,
+    "rarity": "common",
+    "description": "Tall two-tooth ratchet. Good reach for attack builds that need some burst protection."
+  }
+]

@@ -1,0 +1,406 @@
+[
+  {
+    "id": "hometown",
+    "name": "Hometown Stadium",
+    "tier": 1,
+    "description": "Where every Blader's journey begins.",
+    "color": "#4a9eff",
+    "terrain_effects": {},
+    "masters": [
+      {
+        "id": 1,
+        "name": "Kai Sparks",
+        "title": "The Rookie Wrecker",
+        "specialty": "attack",
+        "element": "fire",
+        "difficulty": 0.3,
+        "team": [
+          {
+            "blade": "dran_sword",
+            "ratchet": "3-60",
+            "bit": "flat",
+            "level": 3
+          }
+        ],
+        "reward_bp": 300,
+        "reward_part": "dran_sword",
+        "trophy": "Ember Badge",
+        "dialog_intro": "Hey, new kid! Think you can hang with the big dogs? Let's see what you got!",
+        "dialog_win": "Not bad... not bad at all. You earned that one.",
+        "dialog_lose": "Ha! Come back when you've learned to launch properly!"
+      },
+      {
+        "id": 2,
+        "name": "Mira Tidewell",
+        "title": "The Steady Flow",
+        "specialty": "stamina",
+        "element": "water",
+        "difficulty": 0.35,
+        "team": [
+          {
+            "blade": "shark_edge",
+            "ratchet": "4-60",
+            "bit": "ball",
+            "level": 5
+          }
+        ],
+        "reward_bp": 450,
+        "reward_part": "shark_edge",
+        "trophy": "Tide Badge",
+        "dialog_intro": "Patience wins battles. Can you outlast my Shark Edge?",
+        "dialog_win": "You read the flow perfectly. I respect that.",
+        "dialog_lose": "The tide always wins. You just ran out of spin."
+      },
+      {
+        "id": 3,
+        "name": "Gordo Stonewall",
+        "title": "The Immovable",
+        "specialty": "defense",
+        "element": "earth",
+        "difficulty": 0.4,
+        "team": [
+          {
+            "blade": "knight_shield",
+            "ratchet": "4-80",
+            "bit": "ball",
+            "level": 7
+          },
+          {
+            "blade": "dran_sword",
+            "ratchet": "3-60",
+            "bit": "flat",
+            "level": 5
+          }
+        ],
+        "reward_bp": 600,
+        "reward_part": "knight_shield",
+        "trophy": "Fortress Badge",
+        "dialog_intro": "I don't move. I don't flinch. And I definitely don't lose.",
+        "dialog_win": "Impossible... you broke through my wall?!",
+        "dialog_lose": "Told ya. Hit me all day. I'm not going anywhere."
+      },
+      {
+        "id": 4,
+        "name": "Zephyr Kaze",
+        "title": "The Storm Chaser",
+        "specialty": "attack",
+        "element": "wind",
+        "difficulty": 0.5,
+        "team": [
+          {
+            "blade": "hells_scythe",
+            "ratchet": "3-70",
+            "bit": "high_needle",
+            "level": 9
+          },
+          {
+            "blade": "shark_edge",
+            "ratchet": "4-60",
+            "bit": "flat",
+            "level": 7
+          }
+        ],
+        "reward_bp": 800,
+        "reward_part": "hells_scythe",
+        "trophy": "Gale Badge",
+        "dialog_intro": "Can you even see me? I'm already three moves ahead.",
+        "dialog_win": "Whoa... you kept up with my speed? Color me impressed.",
+        "dialog_lose": "Blink and you missed it. That's how fast I am."
+      },
+      {
+        "id": 5,
+        "name": "Voltaire Ohm",
+        "title": "The Live Wire",
+        "specialty": "balance",
+        "element": "lightning",
+        "difficulty": 0.6,
+        "team": [
+          {
+            "blade": "wizard_arrow",
+            "ratchet": "4-60",
+            "bit": "needle",
+            "level": 11
+          },
+          {
+            "blade": "knight_shield",
+            "ratchet": "4-80",
+            "bit": "ball",
+            "level": 9
+          }
+        ],
+        "reward_bp": 1000,
+        "reward_part": "wizard_arrow",
+        "trophy": "Volt Badge",
+        "dialog_intro": "I calculate every possibility before the match starts. You've already lost.",
+        "dialog_win": "A variable I didn't account for. Fascinating.",
+        "dialog_lose": "As predicted. The math was never in your favor."
+      },
+      {
+        "id": 6,
+        "name": "Yuki Frostblade",
+        "title": "The Frozen Calm",
+        "specialty": "stamina",
+        "element": "ice",
+        "difficulty": 0.7,
+        "team": [
+          {
+            "blade": "shark_edge",
+            "ratchet": "5-60",
+            "bit": "orbit",
+            "level": 14
+          },
+          {
+            "blade": "wizard_arrow",
+            "ratchet": "4-60",
+            "bit": "needle",
+            "level": 12
+          },
+          {
+            "blade": "dran_sword",
+            "ratchet": "3-80",
+            "bit": "flat",
+            "level": 10
+          }
+        ],
+        "reward_bp": 1300,
+        "reward_part": "orbit",
+        "trophy": "Glacier Badge",
+        "dialog_intro": "Stay calm. Stay cold. The one who panics loses first.",
+        "dialog_win": "Your fire was enough to melt my frost. Well played.",
+        "dialog_lose": "The cold doesn't rush. It just waits until you stop spinning."
+      },
+      {
+        "id": 7,
+        "name": "Rex Dreadmaw",
+        "title": "The Shadow Fang",
+        "specialty": "attack",
+        "element": "dark",
+        "difficulty": 0.8,
+        "team": [
+          {
+            "blade": "hells_scythe",
+            "ratchet": "5-70",
+            "bit": "flat",
+            "level": 17
+          },
+          {
+            "blade": "knight_shield",
+            "ratchet": "5-80",
+            "bit": "ball",
+            "level": 15
+          },
+          {
+            "blade": "shark_edge",
+            "ratchet": "4-60",
+            "bit": "orbit",
+            "level": 13
+          }
+        ],
+        "reward_bp": 1600,
+        "reward_part": "xtreme_dash",
+        "trophy": "Shadow Badge",
+        "dialog_intro": "They call me the Shadow Fang for a reason. You won't see the hit coming.",
+        "dialog_win": "Tch. You got lucky. Next time, the shadow bites back.",
+        "dialog_lose": "Darkness always wins. You just can't fight what you can't see."
+      },
+      {
+        "id": 8,
+        "name": "Sora Luminex",
+        "title": "The Radiant Blade",
+        "specialty": "balance",
+        "element": "light",
+        "difficulty": 0.9,
+        "team": [
+          {
+            "blade": "wizard_arrow",
+            "ratchet": "5-70",
+            "bit": "high_needle",
+            "level": 20
+          },
+          {
+            "blade": "dran_sword",
+            "ratchet": "5-80",
+            "bit": "flat",
+            "level": 18
+          },
+          {
+            "blade": "knight_shield",
+            "ratchet": "5-80",
+            "bit": "orbit",
+            "level": 16
+          }
+        ],
+        "reward_bp": 2000,
+        "reward_part": "high_needle",
+        "trophy": "Radiance Badge",
+        "dialog_intro": "I am the last gate before the Elite. Every Blader who stands here has earned it. But earning it and passing it are different things.",
+        "dialog_win": "That light in your eyes... you're the real deal. Go. The Elite awaits.",
+        "dialog_lose": "Close. Really close. But 'close' doesn't open this gate."
+      }
+    ],
+    "elite_challengers": [
+      {
+        "id": 9,
+        "name": "Blaze Infernus",
+        "title": "Elite Four - The Inferno",
+        "specialty": "attack",
+        "element": "fire",
+        "difficulty": 0.92,
+        "team": [
+          {
+            "blade": "dran_sword",
+            "ratchet": "5-80",
+            "bit": "flat",
+            "level": 24
+          },
+          {
+            "blade": "hells_scythe",
+            "ratchet": "5-70",
+            "bit": "flat",
+            "level": 22
+          },
+          {
+            "blade": "wizard_arrow",
+            "ratchet": "5-60",
+            "bit": "high_needle",
+            "level": 20
+          }
+        ],
+        "reward_bp": 2500,
+        "dialog_intro": "Welcome to the big leagues, kid. Hope you brought fireproof gloves.",
+        "dialog_win": "Burned out... by a newcomer. I'll remember this.",
+        "dialog_lose": "Everything burns eventually. You're no exception."
+      },
+      {
+        "id": 10,
+        "name": "Marina Depthcharge",
+        "title": "Elite Four - The Abyss",
+        "specialty": "stamina",
+        "element": "water",
+        "difficulty": 0.94,
+        "team": [
+          {
+            "blade": "shark_edge",
+            "ratchet": "5-80",
+            "bit": "orbit",
+            "level": 25
+          },
+          {
+            "blade": "knight_shield",
+            "ratchet": "5-80",
+            "bit": "ball",
+            "level": 23
+          },
+          {
+            "blade": "dran_sword",
+            "ratchet": "5-60",
+            "bit": "flat",
+            "level": 21
+          }
+        ],
+        "reward_bp": 2500,
+        "dialog_intro": "The deeper you go, the more the pressure crushes you. Ready to drown?",
+        "dialog_win": "You... surfaced. Nobody surfaces from my abyss.",
+        "dialog_lose": "Down you go. The deep doesn't let go."
+      },
+      {
+        "id": 11,
+        "name": "Gaia Ironroot",
+        "title": "Elite Four - The Mountain",
+        "specialty": "defense",
+        "element": "earth",
+        "difficulty": 0.96,
+        "team": [
+          {
+            "blade": "knight_shield",
+            "ratchet": "5-80",
+            "bit": "orbit",
+            "level": 26
+          },
+          {
+            "blade": "shark_edge",
+            "ratchet": "5-70",
+            "bit": "ball",
+            "level": 24
+          },
+          {
+            "blade": "hells_scythe",
+            "ratchet": "5-60",
+            "bit": "flat",
+            "level": 22
+          }
+        ],
+        "reward_bp": 2500,
+        "dialog_intro": "I am the mountain. You are the wind. Blow all you want.",
+        "dialog_win": "The mountain... crumbled? You have the strength of an earthquake.",
+        "dialog_lose": "Mountains don't move for anyone. Especially not you."
+      },
+      {
+        "id": 12,
+        "name": "Raijin Stormclaw",
+        "title": "Elite Four - The Tempest",
+        "specialty": "balance",
+        "element": "lightning",
+        "difficulty": 0.98,
+        "team": [
+          {
+            "blade": "wizard_arrow",
+            "ratchet": "5-80",
+            "bit": "flat",
+            "level": 27
+          },
+          {
+            "blade": "dran_sword",
+            "ratchet": "5-80",
+            "bit": "high_needle",
+            "level": 25
+          },
+          {
+            "blade": "hells_scythe",
+            "ratchet": "5-70",
+            "bit": "flat",
+            "level": 23
+          }
+        ],
+        "reward_bp": 2500,
+        "dialog_intro": "I strike once. That's all it takes. One bolt. One burst. Done.",
+        "dialog_win": "You... dodged the lightning? Nobody dodges the lightning.",
+        "dialog_lose": "Struck down. Don't feel bad. Even the sky fears the storm."
+      }
+    ],
+    "champion": {
+      "id": 13,
+      "name": "Ryuga Xero",
+      "title": "Hometown Champion - The Xtreme",
+      "specialty": "balance",
+      "element": "dark",
+      "difficulty": 1.0,
+      "team": [
+        {
+          "blade": "hells_scythe",
+          "ratchet": "5-80",
+          "bit": "flat",
+          "level": 30
+        },
+        {
+          "blade": "wizard_arrow",
+          "ratchet": "5-80",
+          "bit": "high_needle",
+          "level": 28
+        },
+        {
+          "blade": "dran_sword",
+          "ratchet": "5-80",
+          "bit": "orbit",
+          "level": 26
+        }
+      ],
+      "reward_bp": 5000,
+      "reward_part": "hells_scythe",
+      "trophy": "Hometown Champion Crown",
+      "dialog_intro": "So you beat the Elite Four. Impressive. But I'm not the Elite Four. I'm the reason they exist. Let me show you why they call this the Xtreme.",
+      "dialog_win": "Ha... HAHA! Finally! Someone who can actually push me! You've earned this crown. But don't get comfortable. I'll be taking it back.",
+      "dialog_lose": "That's the difference between talent and mastery. Come back stronger. I'll be waiting."
+    }
+  }
+]

@@ -1,0 +1,2465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>BeyBattle</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+/* === Reset & Base === */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+    --bg: #0a0a14;
+    --bg2: #12122a;
+    --bg3: #1a1a3a;
+    --panel: #161636;
+    --border: #2a2a5a;
+    --text: #e8e8f0;
+    --text-dim: #8888aa;
+    --accent: #00d4ff;
+    --accent2: #ff3366;
+    --gold: #ffd700;
+    --silver: #c0c0c0;
+    --burst: #ff4444;
+    --success: #4ade80;
+    --warning: #facc15;
+    --danger: #ef4444;
+    --elem-fire: #ff4500;
+    --elem-water: #1e90ff;
+    --elem-wind: #32cd32;
+    --elem-earth: #cd853f;
+    --elem-lightning: #ffd700;
+    --elem-ice: #87ceeb;
+    --elem-dark: #9932cc;
+    --elem-light: #fffacd;
+    --type-attack: #ff4444;
+    --type-defense: #4488ff;
+    --type-stamina: #44cc44;
+    --type-balance: #cc88ff;
+    --fs-xs: 10px; --fs-sm: 12px; --fs-md: 14px; --fs-lg: 18px;
+    --fs-xl: 24px; --fs-2xl: 32px; --fs-3xl: 40px;
+}
+html, body { height: 100%; overflow: hidden; }
+body {
+    font-family: "Orbitron", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+button {
+    font-family: inherit; cursor: pointer; border: none; outline: none;
+    -webkit-tap-highlight-color: transparent;
+}
+input {
+    font-family: inherit; outline: none; background: var(--bg);
+    color: var(--text); border: 2px solid var(--border);
+    padding: 10px 14px; font-size: var(--fs-md); border-radius: 6px;
+}
+input:focus { border-color: var(--accent); }
+input.invalid { border-color: var(--danger); }
+
+#app {
+    width: 100%; max-width: 480px; height: 100vh; max-height: 850px;
+    position: relative; overflow: hidden;
+}
+.screen { display: none; width: 100%; height: 100%; flex-direction: column; }
+.screen.active { display: flex; animation: fadeIn 0.2s ease; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* === Toast === */
+.toast-container {
+    position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
+    z-index: 9999; display: flex; flex-direction: column; gap: 6px;
+}
+.toast {
+    padding: 10px 18px; border-radius: 8px; font-size: var(--fs-sm);
+    font-family: "Orbitron", sans-serif; color: #fff;
+    background: var(--bg2); border: 1px solid var(--accent);
+    box-shadow: 0 0 15px rgba(0,212,255,0.3);
+    animation: toastIn 0.3s ease, toastOut 0.3s ease 2.5s forwards;
+}
+.toast.error { border-color: var(--danger); box-shadow: 0 0 15px rgba(255,68,68,0.3); }
+.toast.success { border-color: var(--success); box-shadow: 0 0 15px rgba(74,222,128,0.3); }
+@keyframes toastIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes toastOut { to { opacity: 0; transform: translateY(-20px); } }
+
+/* === Buttons === */
+.btn {
+    padding: 12px 20px; border-radius: 8px; font-size: var(--fs-md);
+    transition: all 0.15s; min-height: 48px; display: flex;
+    align-items: center; justify-content: center; text-transform: uppercase;
+    font-weight: 700; letter-spacing: 1px;
+}
+.btn:active { transform: scale(0.95); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-primary { background: linear-gradient(135deg, var(--accent), #0088cc); color: #fff; }
+.btn-primary:hover { filter: brightness(1.15); }
+.btn-secondary { background: var(--bg3); color: var(--text); border: 2px solid var(--border); }
+.btn-secondary:hover { border-color: var(--accent); }
+.btn-danger { background: linear-gradient(135deg, var(--danger), #cc2222); color: #fff; }
+.btn-gold { background: linear-gradient(135deg, var(--gold), #cc9900); color: #1a1a2e; }
+.btn-green { background: linear-gradient(135deg, var(--success), #22aa44); color: #1a1a2e; }
+.btn-orange { background: linear-gradient(135deg, #f97316, #cc5500); color: #fff; }
+.btn-purple { background: linear-gradient(135deg, #9966ff, #6633cc); color: #fff; }
+.btn-teal { background: linear-gradient(135deg, #2dd4bf, #0d9488); color: #1a1a2e; }
+.btn-yellow { background: linear-gradient(135deg, var(--warning), #cc9900); color: #1a1a2e; }
+.btn-cyan { background: linear-gradient(135deg, var(--accent), #0099cc); color: #1a1a2e; }
+.error-text { color: var(--danger); font-size: var(--fs-xs); min-height: 14px; text-align: center; }
+
+/* === Badges === */
+.type-badge {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    font-size: var(--fs-xs); color: #fff; text-transform: uppercase; font-weight: 700;
+}
+.type-badge.attack { background: var(--type-attack); }
+.type-badge.defense { background: var(--type-defense); }
+.type-badge.stamina { background: var(--type-stamina); }
+.type-badge.balance { background: var(--type-balance); }
+.elem-badge {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    font-size: var(--fs-xs); color: #fff; text-transform: uppercase; font-weight: 700;
+}
+.elem-badge.fire { background: var(--elem-fire); }
+.elem-badge.water { background: var(--elem-water); }
+.elem-badge.wind { background: var(--elem-wind); }
+.elem-badge.earth { background: var(--elem-earth); }
+.elem-badge.lightning { background: var(--elem-lightning); color: #1a1a2e; }
+.elem-badge.ice { background: var(--elem-ice); color: #1a1a2e; }
+.elem-badge.dark { background: var(--elem-dark); }
+.elem-badge.light { background: var(--elem-light); color: #1a1a2e; }
+.rarity-badge {
+    display: inline-block; padding: 1px 6px; border-radius: 3px;
+    font-size: var(--fs-xs); text-transform: uppercase; font-weight: 700;
+}
+.rarity-badge.common { background: #666; color: #fff; }
+.rarity-badge.uncommon { background: #22aa44; color: #fff; }
+.rarity-badge.rare { background: #4488ff; color: #fff; }
+.rarity-badge.legendary { background: linear-gradient(135deg, #ffd700, #ff8c00); color: #1a1a2e; }
+
+/* === Stat Bars === */
+.stat-bar-row { display: flex; align-items: center; gap: 6px; margin: 2px 0; }
+.stat-bar-label { font-size: var(--fs-xs); color: var(--text-dim); min-width: 32px; text-align: right; }
+.stat-bar-track { flex: 1; height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; }
+.stat-bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+.stat-bar-fill.atk { background: var(--type-attack); }
+.stat-bar-fill.def { background: var(--type-defense); }
+.stat-bar-fill.sta { background: var(--type-stamina); }
+.stat-bar-fill.spd { background: var(--accent); }
+.stat-bar-fill.bst { background: var(--gold); }
+.stat-bar-value { font-size: var(--fs-xs); color: var(--text-dim); min-width: 24px; }
+
+/* === Login Screen === */
+.login-screen {
+    align-items: center; justify-content: center; gap: 20px;
+    background: radial-gradient(ellipse at center, var(--bg3) 0%, var(--bg) 70%);
+    padding: 20px;
+}
+.login-logo {
+    font-size: var(--fs-2xl); font-weight: 900; text-align: center;
+    color: var(--accent); line-height: 1.4;
+    text-shadow: 0 0 20px rgba(0,212,255,0.5), 0 4px 0 #005577;
+}
+.login-logo .accent2 { color: var(--accent2); text-shadow: 0 0 20px rgba(255,51,102,0.5), 0 4px 0 #881133; }
+.login-subtitle { font-size: var(--fs-sm); color: var(--text-dim); text-align: center; }
+.login-form { display: flex; flex-direction: column; gap: 12px; width: 320px; max-width: 90%; }
+.login-form input { width: 100%; text-align: center; }
+.login-welcome { font-size: var(--fs-xs); color: var(--text-dim); text-align: center; line-height: 2; }
+.pin-title { font-size: var(--fs-lg); color: var(--accent); text-align: center; }
+.pin-subtitle { font-size: var(--fs-sm); color: var(--text-dim); text-align: center; }
+.pin-input-row { display: flex; justify-content: center; gap: 12px; }
+.pin-digit {
+    width: 56px; height: 64px; font-size: var(--fs-xl);
+    text-align: center; background: var(--bg3);
+    border: 2px solid var(--border); border-radius: 8px;
+    color: var(--text); font-family: "Orbitron", sans-serif;
+    -webkit-text-security: disc;
+}
+.pin-digit:focus { border-color: var(--accent); outline: none; }
+
+/* === Starter Screen === */
+.starter-screen { align-items: center; justify-content: flex-start; gap: 16px; padding: 20px; overflow-y: auto; }
+.starter-title { font-size: var(--fs-lg); color: var(--gold); text-align: center; }
+.starter-subtitle { font-size: var(--fs-sm); color: var(--text-dim); text-align: center; }
+.starter-grid { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; width: 100%; }
+.starter-card {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 16px 12px; border: 3px solid var(--border); border-radius: 12px;
+    cursor: pointer; background: var(--bg2); transition: all 0.2s;
+    min-width: 130px; max-width: 140px; flex: 1;
+}
+.starter-card:hover { border-color: var(--accent); background: var(--bg3); transform: scale(1.03); }
+.starter-card.selected { border-color: var(--accent); background: rgba(0,212,255,0.1); box-shadow: 0 0 15px rgba(0,212,255,0.3); }
+.starter-card .starter-name { font-size: var(--fs-sm); margin-top: 8px; text-align: center; font-weight: 700; }
+.starter-card .starter-desc { font-size: var(--fs-xs); color: var(--text-dim); margin-top: 6px; text-align: center; line-height: 1.6; }
+.starter-card .badges { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; justify-content: center; }
+.starter-stats { width: 100%; margin-top: 8px; }
+
+/* === Hub Screen === */
+.hub-screen { padding: 12px; gap: 10px; overflow-y: auto; }
+.hub-logo { font-size: var(--fs-xl); font-weight: 900; text-align: center; color: var(--accent); text-shadow: 0 0 15px rgba(0,212,255,0.4); }
+.hub-logo .accent2 { color: var(--accent2); }
+.hub-profile { background: var(--bg2); border: 2px solid var(--border); border-radius: 8px; padding: 10px 14px; display: flex; flex-direction: column; gap: 6px; }
+.hub-profile-row { display: flex; justify-content: space-between; align-items: center; }
+.hub-username { font-size: var(--fs-md); font-weight: 700; color: var(--accent); }
+.hub-rank { font-size: var(--fs-sm); color: var(--gold); }
+.hub-bp { font-size: var(--fs-sm); color: var(--warning); }
+.hub-xp-bar { width: 100%; height: 6px; background: var(--bg); border-radius: 3px; overflow: hidden; margin-top: 4px; }
+.hub-xp-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #0088cc); border-radius: 3px; transition: width 0.5s ease; }
+.hub-xp-text { font-size: var(--fs-xs); color: var(--text-dim); text-align: right; }
+.hub-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; }
+.hub-btns .btn { font-size: var(--fs-sm); padding: 10px 8px; }
+.hub-btns .btn.wide { grid-column: 1 / -1; }
+.hub-btns .btn.small { font-size: var(--fs-xs); padding: 8px 6px; min-height: 40px; }
+
+/* === Builder (My Beyblades) Screen === */
+.builder-screen { padding: 12px; gap: 10px; overflow-y: auto; }
+.builder-header { display: flex; justify-content: space-between; align-items: center; }
+.builder-title { font-size: var(--fs-lg); font-weight: 700; color: var(--accent); }
+.team-section-label { font-size: var(--fs-sm); color: var(--text-dim); margin-top: 8px; }
+.bey-card {
+    background: var(--bg2); border: 2px solid var(--border); border-radius: 8px;
+    padding: 10px; margin-top: 6px; display: flex; gap: 10px; align-items: flex-start;
+}
+.bey-card .bey-svg-wrap { flex: 0 0 80px; display: flex; justify-content: center; }
+.bey-card .bey-info { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.bey-card .bey-name { font-size: var(--fs-md); font-weight: 700; }
+.bey-card .bey-parts { font-size: var(--fs-xs); color: var(--text-dim); }
+.bey-card .badges { display: flex; gap: 4px; flex-wrap: wrap; }
+.bey-card .bey-actions { display: flex; gap: 6px; margin-top: 6px; }
+.bey-card .bey-actions .btn { font-size: var(--fs-xs); padding: 6px 10px; min-height: 32px; }
+.storage-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 6px; margin-top: 6px; }
+.storage-card { background: var(--bg2); border: 2px solid var(--border); border-radius: 6px; padding: 8px; text-align: center; cursor: pointer; transition: all 0.15s; }
+.storage-card:hover { border-color: var(--accent); }
+.storage-card .storage-name { font-size: var(--fs-xs); margin-top: 4px; }
+
+/* === Workshop Screen === */
+.workshop-screen { padding: 12px; gap: 10px; overflow-y: auto; }
+.workshop-header { display: flex; justify-content: space-between; align-items: center; }
+.workshop-title { font-size: var(--fs-lg); font-weight: 700; color: var(--accent); }
+.workshop-tabs { display: flex; gap: 4px; }
+.workshop-tab {
+    padding: 8px 14px; border-radius: 6px; font-size: var(--fs-xs); font-weight: 700;
+    background: var(--bg3); border: 2px solid var(--border); color: var(--text-dim);
+    cursor: pointer; transition: all 0.15s;
+}
+.workshop-tab.active { border-color: var(--accent); color: var(--accent); background: rgba(0,212,255,0.1); }
+.part-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 6px; flex: 1; overflow-y: auto; }
+.part-card { background: var(--bg2); border: 2px solid var(--border); border-radius: 6px; padding: 8px; cursor: pointer; transition: all 0.15s; }
+.part-card:hover { border-color: var(--accent); }
+.part-card.selected { border-color: var(--accent); background: rgba(0,212,255,0.1); box-shadow: 0 0 10px rgba(0,212,255,0.2); }
+.part-card .part-name { font-size: var(--fs-sm); font-weight: 700; }
+.part-card .part-meta { font-size: var(--fs-xs); color: var(--text-dim); margin-top: 4px; }
+.assembly-area { background: var(--bg2); border: 2px solid var(--border); border-radius: 8px; padding: 12px; display: flex; gap: 10px; align-items: center; }
+.assembly-slot {
+    flex: 1; text-align: center; padding: 8px; border: 2px dashed var(--border);
+    border-radius: 6px; min-height: 60px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 4px;
+}
+.assembly-slot.filled { border-style: solid; border-color: var(--accent); }
+.assembly-slot .slot-label { font-size: var(--fs-xs); color: var(--text-dim); }
+.assembly-slot .slot-name { font-size: var(--fs-sm); font-weight: 700; }
+.assembly-preview { background: var(--bg2); border: 2px solid var(--border); border-radius: 8px; padding: 12px; display: flex; gap: 10px; align-items: center; }
+
+/* === Stadium (Battle) Screen === */
+.stadium-screen { background: var(--bg); position: relative; }
+.stadium-arena {
+    flex: 1; position: relative; overflow: hidden;
+    background: linear-gradient(180deg, var(--bg2) 0%, var(--bg3) 50%, var(--bg) 100%);
+    display: flex; align-items: center; justify-content: center;
+}
+.stadium-ring {
+    width: 280px; height: 280px; border-radius: 50%;
+    background: radial-gradient(circle, #1a1a3a 0%, #12122a 40%, #0a0a14 70%, #050510 100%);
+    border: 4px solid var(--border);
+    box-shadow: inset 0 0 40px rgba(0,212,255,0.1), 0 0 30px rgba(0,0,0,0.5);
+    position: relative;
+}
+.stadium-ring .edge-glow {
+    position: absolute; inset: -2px; border-radius: 50%;
+    border: 2px solid transparent;
+    background: linear-gradient(45deg, rgba(0,212,255,0.2), transparent, rgba(255,51,102,0.2)) border-box;
+    -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude;
+}
+.stadium-center-dot {
+    position: absolute; top: 50%; left: 50%; width: 8px; height: 8px;
+    background: var(--accent); border-radius: 50%; transform: translate(-50%, -50%);
+    box-shadow: 0 0 10px var(--accent);
+}
+.bey-in-stadium {
+    position: absolute; transition: left 0.4s ease, top 0.4s ease;
+}
+@keyframes bey-spin {
+    to { transform: rotate(360deg); }
+}
+.bey-spinning { animation: bey-spin 0.3s linear infinite; }
+.bey-spinning.slow { animation-duration: 0.8s; }
+.bey-spinning.very-slow { animation-duration: 1.5s; }
+
+/* Collision flash */
+.collision-flash {
+    position: absolute; width: 30px; height: 30px; border-radius: 50%;
+    background: radial-gradient(circle, #fff, var(--accent), transparent);
+    pointer-events: none; animation: collisionPop 0.3s ease-out forwards;
+}
+@keyframes collisionPop {
+    0% { transform: scale(0); opacity: 1; }
+    100% { transform: scale(2); opacity: 0; }
+}
+
+/* Burst animation */
+.burst-effect {
+    position: absolute; pointer-events: none;
+}
+.burst-piece {
+    position: absolute; width: 12px; height: 12px; border-radius: 2px;
+    animation: burstFly 0.8s ease-out forwards;
+}
+@keyframes burstFly {
+    0% { transform: scale(1) rotate(0deg); opacity: 1; }
+    100% { transform: scale(0.3) rotate(720deg) translate(var(--bx), var(--by)); opacity: 0; }
+}
+
+/* HUD overlay */
+.stadium-hud {
+    position: absolute; top: 0; left: 0; right: 0;
+    padding: 8px; display: flex; justify-content: space-between; pointer-events: none;
+}
+.hud-side { display: flex; flex-direction: column; gap: 4px; max-width: 45%; }
+.hud-side.right { align-items: flex-end; }
+.hud-bey-name { font-size: var(--fs-sm); font-weight: 700; }
+.hud-badges { display: flex; gap: 3px; }
+.stamina-bar-wrap { width: 100%; }
+.stamina-bar-bg { width: 100%; height: 10px; background: var(--bg); border-radius: 5px; overflow: hidden; border: 1px solid var(--border); }
+.stamina-bar-fill { height: 100%; border-radius: 5px; transition: width 0.4s ease; background: linear-gradient(90deg, var(--success), var(--accent)); }
+.stamina-bar-fill.warning { background: linear-gradient(90deg, var(--warning), #cc9900); animation: staminaWarn 1s infinite; }
+.stamina-bar-fill.critical { background: linear-gradient(90deg, var(--danger), #cc2222); animation: staminaWarn 0.5s infinite; }
+@keyframes staminaWarn { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
+.stamina-text { font-size: var(--fs-xs); color: var(--text-dim); }
+.burst-meter-wrap { width: 100%; }
+.burst-meter-bg { width: 100%; height: 6px; background: var(--bg); border-radius: 3px; overflow: hidden; border: 1px solid var(--border); }
+.burst-meter-fill { height: 100%; border-radius: 3px; transition: width 0.4s ease; background: linear-gradient(90deg, var(--burst), #ff8800); }
+.burst-meter-text { font-size: var(--fs-xs); color: var(--burst); }
+
+/* Battle text */
+.battle-text-box {
+    background: var(--bg2); border-top: 2px solid var(--border);
+    padding: 8px 12px; min-height: 40px; display: flex; align-items: center; justify-content: center;
+}
+.battle-text { font-size: var(--fs-sm); text-align: center; color: var(--text); }
+
+/* Action panel */
+.action-panel {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+    padding: 8px; background: var(--bg2); border-top: 2px solid var(--border);
+}
+.action-btn {
+    padding: 12px 8px; border-radius: 8px; font-size: var(--fs-sm); font-weight: 700;
+    text-transform: uppercase; color: #fff; min-height: 48px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s; letter-spacing: 1px; cursor: pointer; border: none;
+    font-family: "Orbitron", sans-serif;
+}
+.action-btn:active { transform: scale(0.95); }
+.action-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.action-btn.rush { background: linear-gradient(135deg, var(--type-attack), #cc2222); }
+.action-btn.guard { background: linear-gradient(135deg, var(--type-defense), #2244aa); }
+.action-btn.conserve { background: linear-gradient(135deg, var(--type-stamina), #228822); }
+.action-btn.special {
+    background: linear-gradient(135deg, var(--gold), #ff8800);
+    color: #1a1a2e; animation: actionPulse 1.5s ease-in-out infinite;
+}
+.action-btn.special:disabled { animation: none; }
+@keyframes actionPulse { 0%,100% { box-shadow: 0 0 5px var(--gold); } 50% { box-shadow: 0 0 20px var(--gold); } }
+.action-timer {
+    grid-column: 1 / -1; text-align: center; font-size: var(--fs-lg);
+    color: var(--warning); font-weight: 900;
+}
+.waiting-text { font-size: var(--fs-sm); color: var(--text-dim); text-align: center; padding: 20px; }
+
+/* === Launch Screen === */
+.launch-screen { padding: 20px; gap: 16px; align-items: center; justify-content: center; }
+.launch-title { font-size: var(--fs-lg); color: var(--accent); text-align: center; font-weight: 900; }
+.launch-bey-preview { display: flex; justify-content: center; gap: 20px; }
+.launch-bey-card { text-align: center; }
+.launch-bey-card .bey-label { font-size: var(--fs-xs); color: var(--text-dim); margin-bottom: 4px; }
+.launch-bey-card .bey-name-label { font-size: var(--fs-sm); font-weight: 700; margin-top: 4px; }
+.launch-option { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+.launch-option-label { font-size: var(--fs-sm); color: var(--text-dim); }
+.launch-toggle { display: flex; gap: 6px; }
+.launch-toggle .btn { flex: 1; font-size: var(--fs-xs); padding: 10px 6px; }
+.launch-toggle .btn.active { border-color: var(--accent); color: var(--accent); background: rgba(0,212,255,0.15); }
+.power-meter-wrap { width: 100%; height: 30px; background: var(--bg); border-radius: 6px; border: 2px solid var(--border); overflow: hidden; position: relative; cursor: pointer; }
+.power-meter-fill { height: 100%; background: linear-gradient(90deg, var(--success), var(--warning), var(--danger)); transition: width 0.05s linear; }
+.power-meter-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: var(--fs-sm); font-weight: 700; }
+
+/* === Masters Screen === */
+.masters-screen { padding: 12px; gap: 10px; overflow-y: auto; }
+.masters-header { display: flex; justify-content: space-between; align-items: center; }
+.masters-title { font-size: var(--fs-lg); font-weight: 700; color: var(--accent); }
+.masters-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.master-card {
+    background: var(--bg2); border: 2px solid var(--border); border-radius: 8px;
+    padding: 12px; text-align: center; cursor: pointer; transition: all 0.15s;
+}
+.master-card:hover { border-color: var(--accent); transform: scale(1.02); }
+.master-card.locked { opacity: 0.5; cursor: not-allowed; }
+.master-card .master-portrait {
+    width: 48px; height: 48px; border-radius: 50%; margin: 0 auto 6px;
+    background: var(--bg3); border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: var(--fs-lg);
+}
+.master-card .master-name { font-size: var(--fs-sm); font-weight: 700; }
+.master-card .master-title-text { font-size: var(--fs-xs); color: var(--text-dim); margin-top: 2px; }
+.master-card .trophy { font-size: var(--fs-lg); margin-top: 4px; }
+.master-card .trophy.earned { color: var(--gold); }
+.master-card .trophy.unearned { color: #333; }
+
+/* === Master Intro Screen === */
+.masterintro-screen { padding: 20px; gap: 16px; align-items: center; justify-content: center; }
+.masterintro-name { font-size: var(--fs-xl); font-weight: 900; color: var(--accent); text-align: center; }
+.masterintro-title { font-size: var(--fs-sm); color: var(--gold); text-align: center; }
+.masterintro-portrait {
+    width: 80px; height: 80px; border-radius: 50%; background: var(--bg3);
+    border: 3px solid var(--accent); display: flex; align-items: center;
+    justify-content: center; font-size: var(--fs-3xl);
+}
+.masterintro-dialog {
+    font-size: var(--fs-sm); color: var(--text); text-align: center;
+    line-height: 1.8; max-width: 340px; font-style: italic;
+    padding: 12px; background: var(--bg2); border-radius: 8px;
+    border: 1px solid var(--border);
+}
+
+/* === Shop Screen === */
+.shop-screen { padding: 12px; gap: 10px; overflow-y: auto; }
+.shop-header { display: flex; justify-content: space-between; align-items: center; }
+.shop-title { font-size: var(--fs-lg); font-weight: 700; color: var(--gold); }
+.shop-currency { font-size: var(--fs-md); color: var(--warning); }
+.shop-category { font-size: var(--fs-sm); color: var(--text-dim); margin-top: 8px; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+.shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px; }
+.shop-item {
+    background: var(--bg2); border: 2px solid var(--border); border-radius: 8px;
+    padding: 10px; display: flex; flex-direction: column; gap: 6px;
+}
+.shop-item .item-name { font-size: var(--fs-sm); font-weight: 700; }
+.shop-item .item-desc { font-size: var(--fs-xs); color: var(--text-dim); line-height: 1.5; }
+.shop-item .item-price { font-size: var(--fs-sm); color: var(--success); font-weight: 700; }
+.shop-item .btn { font-size: var(--fs-xs); padding: 8px; min-height: 36px; }
+
+/* === Trade Screens === */
+.trade-screen { padding: 12px; gap: 10px; }
+.trade-header { display: flex; justify-content: space-between; align-items: center; }
+.trade-title { font-size: var(--fs-lg); font-weight: 700; color: var(--teal, #2dd4bf); }
+.trade-lobby { display: flex; flex-direction: column; align-items: center; gap: 16px; flex: 1; justify-content: center; }
+.room-code {
+    font-size: var(--fs-3xl); letter-spacing: 12px; color: var(--accent);
+    text-shadow: 0 0 30px rgba(0,212,255,0.4); cursor: pointer;
+}
+.room-code:hover { text-shadow: 0 0 40px rgba(0,212,255,0.7); }
+.trade-status { font-size: var(--fs-sm); color: var(--text-dim); }
+.dots-anim::after { content: ''; animation: dots 1.5s infinite; }
+@keyframes dots { 0% { content: ''; } 25% { content: '.'; } 50% { content: '..'; } 75% { content: '...'; } }
+.trade-area { display: flex; gap: 10px; flex: 1; overflow: hidden; }
+.trade-side { flex: 1; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; }
+.trade-side-label { font-size: var(--fs-xs); color: var(--text-dim); text-align: center; }
+.trade-offer-box {
+    min-height: 80px; background: var(--bg2); border: 2px dashed var(--border);
+    border-radius: 8px; display: flex; align-items: center; justify-content: center; padding: 8px;
+}
+.trade-offer-box.has-offer { border-style: solid; border-color: var(--accent); }
+.trade-offer-placeholder { font-size: var(--fs-xs); color: var(--text-dim); }
+.trade-arrow { font-size: var(--fs-xl); color: var(--text-dim); display: flex; align-items: center; }
+.trade-part-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 4px; flex: 1; overflow-y: auto; }
+.trade-confirm-bar { display: flex; gap: 8px; }
+.trade-confirmed-badge { font-size: var(--fs-sm); color: var(--success); font-weight: 700; }
+
+/* === Tournament Screen === */
+.tournament-screen { padding: 12px; gap: 10px; overflow-y: auto; }
+.tournament-header { display: flex; justify-content: space-between; align-items: center; }
+.tournament-title { font-size: var(--fs-lg); font-weight: 700; color: var(--gold); }
+.bracket-container { display: flex; flex-direction: column; gap: 12px; flex: 1; }
+.bracket-round { display: flex; flex-direction: column; gap: 6px; }
+.bracket-round-name { font-size: var(--fs-sm); color: var(--gold); font-weight: 700; margin-bottom: 4px; }
+.bracket-match {
+    background: var(--bg2); border: 2px solid var(--border); border-radius: 6px;
+    padding: 8px; display: flex; justify-content: space-between; align-items: center;
+}
+.bracket-match.current { border-color: var(--accent); box-shadow: 0 0 10px rgba(0,212,255,0.2); }
+.bracket-match .match-player { font-size: var(--fs-xs); }
+.bracket-match .match-player.winner { color: var(--success); font-weight: 700; }
+.bracket-match .match-vs { font-size: var(--fs-xs); color: var(--text-dim); }
+
+/* === Catalog Screen === */
+.catalog-screen { padding: 12px; gap: 10px; overflow-y: auto; }
+.catalog-header { display: flex; justify-content: space-between; align-items: center; }
+.catalog-title { font-size: var(--fs-lg); font-weight: 700; color: var(--accent2); }
+.catalog-tabs { display: flex; gap: 4px; }
+.catalog-tab {
+    padding: 8px 14px; border-radius: 6px; font-size: var(--fs-xs); font-weight: 700;
+    background: var(--bg3); border: 2px solid var(--border); color: var(--text-dim);
+    cursor: pointer; transition: all 0.15s;
+}
+.catalog-tab.active { border-color: var(--accent2); color: var(--accent2); }
+.catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 6px; flex: 1; overflow-y: auto; }
+.catalog-card {
+    background: var(--bg2); border: 2px solid var(--border); border-radius: 6px;
+    padding: 8px; text-align: center; cursor: pointer; transition: all 0.15s; min-height: 80px;
+}
+.catalog-card:hover { border-color: var(--accent2); }
+.catalog-card.unseen { filter: brightness(0.3); }
+.catalog-card.seen { filter: brightness(0.6); }
+.catalog-card .catalog-name { font-size: var(--fs-xs); margin-top: 4px; }
+.catalog-detail-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 200;
+    flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 20px;
+}
+.catalog-detail-overlay.active { display: flex; }
+.catalog-detail { background: var(--bg2); border: 2px solid var(--border); border-radius: 12px; padding: 20px; max-width: 360px; width: 90%; }
+
+/* === Title (PvP menu), Lobby, Team Select === */
+.title-screen { align-items: center; justify-content: center; gap: 20px; padding: 20px; }
+.title-heading { font-size: var(--fs-xl); font-weight: 900; color: var(--accent); text-align: center; }
+.title-instructions { font-size: var(--fs-sm); color: var(--text-dim); line-height: 2.2; text-align: left; width: 300px; max-width: 90%; }
+.title-form { display: flex; flex-direction: column; gap: 12px; width: 300px; max-width: 90%; }
+.title-form input { width: 100%; text-align: center; }
+.title-btns { display: flex; gap: 10px; }
+.title-btns .btn { flex: 1; }
+.lobby-screen { align-items: center; justify-content: center; gap: 20px; padding: 20px; }
+.lobby-status { font-size: var(--fs-sm); color: var(--text-dim); }
+.team-select-screen { padding: 10px; gap: 8px; }
+.team-select-header { display: flex; justify-content: space-between; align-items: center; }
+.team-timer { font-size: var(--fs-lg); color: var(--warning); min-width: 50px; text-align: right; }
+
+/* === Result Screen === */
+.result-screen { align-items: center; justify-content: center; gap: 16px; padding: 20px; }
+.result-title { font-size: var(--fs-2xl); font-weight: 900; text-align: center; }
+.result-title.win { color: var(--success); text-shadow: 0 0 20px rgba(74,222,128,0.5); }
+.result-title.lose { color: var(--danger); text-shadow: 0 0 20px rgba(255,68,68,0.5); }
+.result-finish { font-size: var(--fs-md); color: var(--gold); text-align: center; }
+.result-details { font-size: var(--fs-sm); color: var(--text-dim); text-align: center; line-height: 2; }
+.result-rewards { font-size: var(--fs-sm); color: var(--warning); text-align: center; }
+.result-btns { display: flex; gap: 10px; width: 300px; max-width: 90%; }
+.result-btns .btn { flex: 1; }
+
+/* === Training Screen === */
+.training-screen { padding: 12px; gap: 10px; overflow-y: auto; }
+.training-header { display: flex; justify-content: space-between; align-items: center; }
+.training-title { font-size: var(--fs-lg); font-weight: 700; color: var(--accent); }
+.training-desc { font-size: var(--fs-xs); color: var(--text-dim); line-height: 1.6; }
+
+/* === Elite List Screen === */
+.elitelist-screen { padding: 12px; gap: 10px; overflow-y: auto; }
+.elitelist-header { display: flex; justify-content: space-between; align-items: center; }
+.elitelist-title { font-size: var(--fs-lg); font-weight: 700; color: var(--gold); }
+
+/* === Bug Report === */
+.bug-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 300;
+    flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 20px;
+}
+.bug-overlay.active { display: flex; }
+.bug-overlay textarea {
+    width: 300px; max-width: 90%; height: 120px; background: var(--bg); color: var(--text);
+    border: 2px solid var(--border); border-radius: 8px; padding: 10px;
+    font-family: "Orbitron", sans-serif; font-size: var(--fs-sm); resize: none;
+}
+
+/* === Scrollbar === */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+/* === Utility === */
+.hidden { display: none !important; }
+.flex-center { display: flex; align-items: center; justify-content: center; }
+
+</style>
+</head>
+<body>
+<div class="toast-container" id="toast-container"></div>
+<div id="app">
+
+  <!-- 1. LOGIN SCREEN -->
+  <div id="screen-login" class="screen login-screen active">
+    <div class="login-logo">BEY<br><span class="accent2">BATTLE</span></div>
+    <div class="login-subtitle">Beyblade X - Multiplayer Stadium</div>
+    <div class="login-form" id="login-form-main">
+      <input id="login-username" type="text" placeholder="Enter Username" maxlength="16" autocomplete="off">
+      <button class="btn btn-primary" onclick="doLogin()">PLAY</button>
+      <div id="login-error" class="error-text"></div>
+      <div class="login-welcome">New Blader? Pick a username!<br>Returning? Enter the same name.</div>
+    </div>
+    <!-- PIN Setup -->
+    <div id="pin-setup" class="login-form" style="display:none">
+      <div class="pin-title">Set Your 4-Digit Code</div>
+      <div class="pin-subtitle" id="pin-setup-subtitle">Protect your account</div>
+      <div class="pin-input-row">
+        <input id="pin-s1" type="tel" maxlength="1" inputmode="numeric" class="pin-digit" autocomplete="off">
+        <input id="pin-s2" type="tel" maxlength="1" inputmode="numeric" class="pin-digit" autocomplete="off">
+        <input id="pin-s3" type="tel" maxlength="1" inputmode="numeric" class="pin-digit" autocomplete="off">
+        <input id="pin-s4" type="tel" maxlength="1" inputmode="numeric" class="pin-digit" autocomplete="off">
+      </div>
+      <button class="btn btn-primary" onclick="submitPinSetup()">SET CODE</button>
+      <div id="pin-setup-error" class="error-text"></div>
+    </div>
+    <!-- PIN Verify -->
+    <div id="pin-verify" class="login-form" style="display:none">
+      <div class="pin-title">Enter Your Code</div>
+      <div class="pin-subtitle" id="pin-verify-subtitle"></div>
+      <div class="pin-input-row">
+        <input id="pin-v1" type="tel" maxlength="1" inputmode="numeric" class="pin-digit" autocomplete="off">
+        <input id="pin-v2" type="tel" maxlength="1" inputmode="numeric" class="pin-digit" autocomplete="off">
+        <input id="pin-v3" type="tel" maxlength="1" inputmode="numeric" class="pin-digit" autocomplete="off">
+        <input id="pin-v4" type="tel" maxlength="1" inputmode="numeric" class="pin-digit" autocomplete="off">
+      </div>
+      <button class="btn btn-primary" onclick="submitPinVerify()">LOGIN</button>
+      <div id="pin-verify-error" class="error-text"></div>
+    </div>
+  </div>
+
+  <!-- 2. STARTER SCREEN -->
+  <div id="screen-starter" class="screen starter-screen">
+    <div class="starter-title">Choose Your First Beyblade!</div>
+    <div class="starter-subtitle">This kit includes a Blade, Ratchet, and Bit</div>
+    <div class="starter-grid" id="starter-grid"></div>
+    <button class="btn btn-primary" id="starter-confirm-btn" onclick="confirmStarter()" disabled style="width:280px;margin-top:10px">SELECT</button>
+  </div>
+
+  <!-- 3. HUB SCREEN -->
+  <div id="screen-hub" class="screen hub-screen">
+    <div class="hub-logo">BEY<span class="accent2">BATTLE</span></div>
+    <div class="hub-profile" id="hub-profile"></div>
+    <div class="hub-btns">
+      <button class="btn btn-green wide" onclick="startFreeBattle()">FREE BATTLE</button>
+      <button class="btn btn-purple" onclick="showMasters()">STADIUM MASTERS</button>
+      <button class="btn btn-orange" onclick="showQuickBattle()">QUICK BATTLE</button>
+      <button class="btn btn-yellow" onclick="startAIBattle()">BATTLE AI</button>
+      <button class="btn btn-cyan" onclick="showBuilder()">MY BEYBLADES</button>
+      <button class="btn btn-purple" onclick="showWorkshop()">WORKSHOP</button>
+      <button class="btn btn-gold" onclick="showShop()">SHOP</button>
+      <button class="btn btn-teal" onclick="showTradeMenu()">TRADE</button>
+      <button class="btn btn-gold" id="hub-tournament-btn" onclick="showTournament()">TOURNAMENT</button>
+      <button class="btn btn-danger" onclick="showCatalog()">CATALOG</button>
+      <button class="btn btn-teal" onclick="showTraining()">TRAINING</button>
+      <button class="btn btn-secondary" onclick="showEliteList()">ELITE LIST</button>
+      <button class="btn btn-secondary small" onclick="logout()">LOG OUT</button>
+      <button class="btn btn-danger small" onclick="showBugReport()">REPORT BUG</button>
+    </div>
+  </div>
+
+  <!-- 4. BUILDER (My Beyblades) SCREEN -->
+  <div id="screen-builder" class="screen builder-screen">
+    <div class="builder-header">
+      <span class="builder-title">MY BEYBLADES</span>
+      <button class="btn btn-secondary" style="font-size:var(--fs-xs);padding:8px 12px;min-height:36px" onclick="goHome()">BACK</button>
+    </div>
+    <div class="team-section-label">Team (up to 3)</div>
+    <div id="builder-team"></div>
+    <div class="team-section-label">Storage</div>
+    <div id="builder-storage" class="storage-grid"></div>
+  </div>
+
+  <!-- 5. WORKSHOP SCREEN -->
+  <div id="screen-workshop" class="screen workshop-screen">
+    <div class="workshop-header">
+      <span class="workshop-title">WORKSHOP</span>
+      <button class="btn btn-secondary" style="font-size:var(--fs-xs);padding:8px 12px;min-height:36px" onclick="goHome()">BACK</button>
+    </div>
+    <div class="workshop-tabs">
+      <button class="workshop-tab active" onclick="setWorkshopTab(this,'blades')">Blades</button>
+      <button class="workshop-tab" onclick="setWorkshopTab(this,'ratchets')">Ratchets</button>
+      <button class="workshop-tab" onclick="setWorkshopTab(this,'bits')">Bits</button>
+    </div>
+    <div class="part-grid" id="workshop-parts"></div>
+    <div class="assembly-area" id="assembly-area">
+      <div class="assembly-slot" id="slot-blade"><div class="slot-label">BLADE</div></div>
+      <div class="assembly-slot" id="slot-ratchet"><div class="slot-label">RATCHET</div></div>
+      <div class="assembly-slot" id="slot-bit"><div class="slot-label">BIT</div></div>
+    </div>
+    <div class="assembly-preview" id="assembly-preview" style="display:none">
+      <div class="preview-svg" id="preview-svg"></div>
+      <div class="preview-stats" id="preview-stats"></div>
+    </div>
+    <button class="btn btn-primary" id="assemble-btn" onclick="assembleBey()" disabled style="margin-top:8px">ASSEMBLE</button>
+  </div>
+
+  <!-- 6. STADIUM (Battle) SCREEN -->
+  <div id="screen-stadium" class="screen stadium-screen">
+    <div class="stadium-arena" id="stadium-arena">
+      <div class="stadium-hud">
+        <div class="hud-side left">
+          <div class="hud-bey-name" id="hud-p1-name">---</div>
+          <div class="hud-badges" id="hud-p1-badges"></div>
+          <div class="stamina-bar-wrap">
+            <div class="stamina-bar-bg"><div class="stamina-bar-fill" id="hud-p1-stamina"></div></div>
+            <div class="stamina-text" id="hud-p1-stamina-text">100%</div>
+          </div>
+          <div class="burst-meter-wrap">
+            <div class="burst-meter-bg"><div class="burst-meter-fill" id="hud-p1-burst"></div></div>
+            <div class="burst-meter-text" id="hud-p1-burst-text">Burst: 0%</div>
+          </div>
+        </div>
+        <div class="hud-side right">
+          <div class="hud-bey-name" id="hud-p2-name">---</div>
+          <div class="hud-badges" id="hud-p2-badges"></div>
+          <div class="stamina-bar-wrap">
+            <div class="stamina-bar-bg"><div class="stamina-bar-fill" id="hud-p2-stamina"></div></div>
+            <div class="stamina-text" id="hud-p2-stamina-text">100%</div>
+          </div>
+          <div class="burst-meter-wrap">
+            <div class="burst-meter-bg"><div class="burst-meter-fill" id="hud-p2-burst"></div></div>
+            <div class="burst-meter-text" id="hud-p2-burst-text">Burst: 0%</div>
+          </div>
+        </div>
+      </div>
+      <div class="stadium-ring" id="stadium-ring">
+        <div class="edge-glow"></div>
+        <div class="stadium-center-dot"></div>
+        <div class="bey-in-stadium" id="bey-p1"></div>
+        <div class="bey-in-stadium" id="bey-p2"></div>
+      </div>
+    </div>
+    <div class="battle-text-box">
+      <div class="battle-text" id="battle-text">Waiting...</div>
+    </div>
+    <div id="battle-controls">
+      <div class="action-panel" id="action-panel" style="display:none">
+        <div class="action-timer" id="action-timer">5</div>
+        <button class="action-btn rush" onclick="sendAction('rush')">RUSH</button>
+        <button class="action-btn guard" onclick="sendAction('guard')">GUARD</button>
+        <button class="action-btn conserve" onclick="sendAction('conserve')">CONSERVE</button>
+        <button class="action-btn special" id="action-special-btn" onclick="sendAction('special')" disabled>SPECIAL</button>
+      </div>
+      <div class="waiting-text" id="battle-waiting" style="display:none">Watching the stadium...</div>
+    </div>
+  </div>
+
+  <!-- 7. LAUNCH SCREEN -->
+  <div id="screen-launch" class="screen launch-screen">
+    <div class="launch-title">PREPARE TO LAUNCH!</div>
+    <div class="launch-bey-preview" id="launch-preview"></div>
+    <div class="launch-option">
+      <div class="launch-option-label">Spin Direction</div>
+      <div class="launch-toggle" id="spin-toggle">
+        <button class="btn btn-secondary" onclick="setSpinDir('left',this)">LEFT SPIN</button>
+        <button class="btn btn-secondary active" onclick="setSpinDir('right',this)">RIGHT SPIN</button>
+      </div>
+    </div>
+    <div class="launch-option">
+      <div class="launch-option-label">Launch Power (tap to lock)</div>
+      <div class="power-meter-wrap" id="power-meter" onclick="lockPower()">
+        <div class="power-meter-fill" id="power-fill"></div>
+        <div class="power-meter-text" id="power-text">0%</div>
+      </div>
+    </div>
+    <div class="launch-option">
+      <div class="launch-option-label">Position</div>
+      <div class="launch-toggle" id="position-toggle">
+        <button class="btn btn-secondary" onclick="setPosition('inside',this)">INSIDE</button>
+        <button class="btn btn-secondary active" onclick="setPosition('middle',this)">MIDDLE</button>
+        <button class="btn btn-secondary" onclick="setPosition('outside',this)">OUTSIDE</button>
+      </div>
+    </div>
+    <button class="btn btn-primary" id="launch-btn" onclick="submitLaunch()" style="width:280px;margin-top:10px">LAUNCH!</button>
+  </div>
+
+  <!-- 8. MASTERS SCREEN -->
+  <div id="screen-masters" class="screen masters-screen">
+    <div class="masters-header">
+      <span class="masters-title">STADIUM MASTERS</span>
+      <button class="btn btn-secondary" style="font-size:var(--fs-xs);padding:8px 12px;min-height:36px" onclick="goHome()">BACK</button>
+    </div>
+    <div class="masters-grid" id="masters-grid"></div>
+  </div>
+
+  <!-- 9. MASTER INTRO SCREEN -->
+  <div id="screen-masterintro" class="screen masterintro-screen">
+    <div class="masterintro-portrait" id="masterintro-portrait"></div>
+    <div class="masterintro-name" id="masterintro-name"></div>
+    <div class="masterintro-title" id="masterintro-title-text"></div>
+    <div id="masterintro-badges" style="display:flex;gap:4px;justify-content:center"></div>
+    <div class="masterintro-dialog" id="masterintro-dialog"></div>
+    <div style="display:flex;gap:10px;width:280px">
+      <button class="btn btn-primary" style="flex:1" id="masterintro-battle-btn">BATTLE!</button>
+      <button class="btn btn-secondary" style="flex:1" id="masterintro-back-btn" onclick="showMasters()">BACK</button>
+    </div>
+  </div>
+
+  <!-- 10. SHOP SCREEN -->
+  <div id="screen-shop" class="screen shop-screen">
+    <div class="shop-header">
+      <span class="shop-title">SHOP</span>
+      <span class="shop-currency" id="shop-currency">0 BP</span>
+      <button class="btn btn-secondary" style="font-size:var(--fs-xs);padding:8px 12px;min-height:36px" onclick="goHome()">BACK</button>
+    </div>
+    <div id="shop-items"></div>
+  </div>
+
+  <!-- 11a. TRADE MENU -->
+  <div id="screen-trademenu" class="screen trade-screen">
+    <div class="trade-header">
+      <span class="trade-title">TRADE</span>
+      <button class="btn btn-secondary" style="font-size:var(--fs-xs);padding:8px 12px;min-height:36px" onclick="goHome()">BACK</button>
+    </div>
+    <div class="trade-lobby">
+      <div style="font-size:var(--fs-sm);color:var(--text);text-align:center">Trade parts with a friend!<br>Create a room or join with a code.</div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-teal" onclick="createTradeRoom()">CREATE</button>
+        <button class="btn btn-secondary" onclick="showTradeJoinInput()">JOIN</button>
+      </div>
+      <input id="trade-join-code" type="text" placeholder="Room Code (4 letters)" maxlength="4" style="display:none" autocomplete="off">
+      <button id="trade-join-btn" class="btn btn-teal" style="display:none" onclick="joinTradeRoom()">JOIN ROOM</button>
+      <div id="trade-menu-error" class="error-text"></div>
+    </div>
+  </div>
+
+  <!-- 11b. TRADE WAIT -->
+  <div id="screen-tradewait" class="screen trade-screen">
+    <div class="trade-header">
+      <span class="trade-title">TRADE ROOM</span>
+      <button class="btn btn-secondary" style="font-size:var(--fs-xs);padding:8px 12px;min-height:36px" onclick="cancelTrade()">LEAVE</button>
+    </div>
+    <div class="trade-lobby">
+      <div class="room-code" id="trade-lobby-code" onclick="copyTradeCode()" title="Click to copy"></div>
+      <div class="trade-status">Share this code with your trade partner</div>
+      <div class="trade-status dots-anim">Waiting for partner</div>
+    </div>
+  </div>
+
+  <!-- 11c. TRADE ACTIVE -->
+  <div id="screen-trade" class="screen trade-screen">
+    <div class="trade-header">
+      <span class="trade-title">TRADE</span>
+      <button class="btn btn-secondary" style="font-size:var(--fs-xs);padding:8px 12px;min-height:36px" onclick="cancelTrade()">CANCEL</button>
+    </div>
+    <div class="trade-area">
+      <div class="trade-side">
+        <div class="trade-side-label">YOUR OFFER</div>
+        <div class="trade-offer-box" id="trade-my-offer"><div class="trade-offer-placeholder">Tap a part below</div></div>
+        <div class="trade-side-label">Your Parts</div>
+        <div class="trade-part-grid" id="trade-my-parts"></div>
+      </div>
+      <div class="trade-arrow">&#8644;</div>
+      <div class="trade-side">
+        <div class="trade-side-label" id="trade-partner-label">PARTNER'S OFFER</div>
+        <div class="trade-offer-box" id="trade-partner-offer"><div class="trade-offer-placeholder">Waiting...</div></div>
+        <div id="trade-partner-confirmed" class="trade-confirmed-badge" style="display:none">CONFIRMED!</div>
+      </div>
+    </div>
+    <div class="trade-confirm-bar">
+      <button class="btn btn-teal" id="trade-confirm-btn" onclick="confirmTrade()" disabled style="flex:1">CONFIRM TRADE</button>
+    </div>
+  </div>
+
+  <!-- 12. TOURNAMENT SCREEN -->
+  <div id="screen-tournament" class="screen tournament-screen">
+    <div class="tournament-header">
+      <span class="tournament-title">TOURNAMENT</span>
+      <button class="btn btn-secondary" style="font-size:var(--fs-xs);padding:8px 12px;min-height:36px" onclick="goHome()">BACK</button>
+    </div>
+    <div id="tournament-content" class="bracket-container"></div>
+  </div>
+
+  <!-- 13. CATALOG SCREEN -->
+  <div id="screen-catalog" class="screen catalog-screen">
+    <div class="catalog-header">
+      <span class="catalog-title">CATALOG</span>
+      <button class="btn btn-secondary" style="font-size:var(--fs-xs);padding:8px 12px;min-height:36px" onclick="goHome()">BACK</button>
+    </div>
+    <div class="catalog-tabs">
+      <button class="catalog-tab active" onclick="setCatalogTab(this,'blades')">Blades</button>
+      <button class="catalog-tab" onclick="setCatalogTab(this,'ratchets')">Ratchets</button>
+      <button class="catalog-tab" onclick="setCatalogTab(this,'bits')">Bits</button>
+    </div>
+    <div class="catalog-grid" id="catalog-grid"></div>
+  </div>
+  <div class="catalog-detail-overlay" id="catalog-detail-overlay" onclick="if(event.target===this)closeCatalogDetail()">
+    <div class="catalog-detail" id="catalog-detail"></div>
+  </div>
+
+  <!-- 14. TITLE (Quick Battle PvP Menu) SCREEN -->
+  <div id="screen-title" class="screen title-screen">
+    <div class="title-heading">QUICK<br>BATTLE</div>
+    <div class="title-instructions">
+      <p>1. CREATE a room and share the 4-letter code</p>
+      <p>2. Or JOIN with a friend's code</p>
+      <p>3. Select your Beyblade and fight!</p>
+    </div>
+    <div class="title-form">
+      <div class="title-btns">
+        <button class="btn btn-primary" onclick="createRoom()">CREATE</button>
+        <button class="btn btn-secondary" onclick="showJoinInput()">JOIN</button>
+      </div>
+      <input id="join-code" type="text" placeholder="Room Code (4 letters)" maxlength="4" style="display:none" autocomplete="off">
+      <button id="join-btn" class="btn btn-primary" style="display:none" onclick="joinRoom()">JOIN ROOM</button>
+      <button class="btn btn-yellow" onclick="createAIBattle()">BATTLE AI</button>
+      <button class="btn btn-secondary" onclick="goHome()">BACK TO HUB</button>
+      <div id="title-error" class="error-text"></div>
+    </div>
+  </div>
+
+  <!-- 15. LOBBY SCREEN -->
+  <div id="screen-lobby" class="screen lobby-screen">
+    <div class="title-heading" style="font-size:var(--fs-xl)">WAITING</div>
+    <div class="room-code" id="lobby-code" onclick="copyCode()" title="Click to copy"></div>
+    <div class="lobby-status">Share this code with your opponent</div>
+    <div class="lobby-status dots-anim" id="lobby-waiting">Waiting for opponent</div>
+    <button class="btn btn-secondary" style="width:200px" onclick="leaveRoom()">LEAVE</button>
+  </div>
+
+  <!-- 16. TEAM SELECT (for PvP bey selection) SCREEN -->
+  <div id="screen-team" class="screen team-select-screen">
+    <div class="team-select-header">
+      <span style="font-size:var(--fs-md);font-weight:700">Select Beyblade</span>
+      <span class="team-timer" id="team-timer">60</span>
+    </div>
+    <div id="team-bey-list" style="flex:1;overflow-y:auto"></div>
+    <div style="display:flex;gap:8px;padding:4px">
+      <button class="btn btn-primary" id="lock-bey-btn" onclick="lockBey()" disabled style="flex:1">LOCK IN</button>
+      <span id="opponent-ready-status" style="font-size:var(--fs-xs);color:var(--text-dim);display:flex;align-items:center"></span>
+    </div>
+  </div>
+
+  <!-- 17. RESULT SCREEN -->
+  <div id="screen-result" class="screen result-screen">
+    <div class="result-title" id="result-title">YOU WIN!</div>
+    <div class="result-finish" id="result-finish"></div>
+    <div class="result-details" id="result-details"></div>
+    <div class="result-rewards" id="result-rewards"></div>
+    <div class="result-btns">
+      <button class="btn btn-primary" onclick="goHome()">HOME</button>
+      <button class="btn btn-secondary" onclick="requestRematch()">REMATCH</button>
+    </div>
+  </div>
+
+  <!-- 18. ELITE LIST SCREEN -->
+  <div id="screen-elitelist" class="screen elitelist-screen">
+    <div class="elitelist-header">
+      <span class="elitelist-title">ELITE CHALLENGERS</span>
+      <button class="btn btn-secondary" style="font-size:var(--fs-xs);padding:8px 12px;min-height:36px" onclick="goHome()">BACK</button>
+    </div>
+    <div id="elitelist-content"></div>
+  </div>
+
+  <!-- 19. TRAINING SCREEN -->
+  <div id="screen-training" class="screen training-screen">
+    <div class="training-header">
+      <span class="training-title">TRAINING</span>
+      <button class="btn btn-secondary" style="font-size:var(--fs-xs);padding:8px 12px;min-height:36px" onclick="goHome()">BACK</button>
+    </div>
+    <div class="training-desc">Practice against any opponent. No rewards, just skill.</div>
+    <div id="training-content"></div>
+  </div>
+
+</div>
+
+<!-- Bug Report Overlay -->
+<div class="bug-overlay" id="bug-overlay">
+  <div style="font-size:var(--fs-lg);color:var(--accent)">REPORT A BUG</div>
+  <textarea id="bug-text" placeholder="Describe the bug..."></textarea>
+  <div style="display:flex;gap:10px;width:300px;max-width:90%">
+    <button class="btn btn-primary" style="flex:1" onclick="submitBug()">SEND</button>
+    <button class="btn btn-secondary" style="flex:1" onclick="closeBugReport()">CANCEL</button>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   BeyBattle Frontend - State & WebSocket
+   ============================================================ */
+
+const S = {
+    ws: null,
+    user: null,
+    account: null,
+    team: [],
+    parts: [],
+    beyblades: [],
+    currentBey: null,
+    opponentBey: null,
+    battleState: null,
+    gameData: null,
+    currentScreen: 'login',
+    roomCode: null,
+    tradeCode: null,
+    myPlayerIndex: -1,
+    pendingUsername: null,
+    // Launch state
+    spinDirection: 'right',
+    launchPower: 0.5,
+    launchPosition: 'middle',
+    powerLocked: false,
+    powerAnimFrame: null,
+    // Workshop state
+    workshopTab: 'blades',
+    selectedBlade: null,
+    selectedRatchet: null,
+    selectedBit: null,
+    // Catalog state
+    catalogTab: 'blades',
+    // Trade state
+    tradeMyOffer: null,
+    tradePartner: null,
+    // Starter
+    selectedStarter: null,
+    // Action window
+    actionTimerInterval: null,
+    actionSent: false,
+};
+
+/* === WebSocket === */
+function connect() {
+    var proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    S.ws = new WebSocket(proto + '//' + location.host + '/ws');
+    S.ws.onopen = function() {
+        console.log('WS connected');
+        // Try auto-login from stored token
+        var token = localStorage.getItem('bb_token');
+        if (token) {
+            send({ type: 'auto_login', token: token });
+        }
+    };
+    S.ws.onmessage = function(e) {
+        var msg;
+        try { msg = JSON.parse(e.data); } catch(err) { return; }
+        handleMessage(msg);
+    };
+    S.ws.onclose = function() {
+        console.log('WS closed, reconnecting...');
+        setTimeout(connect, 2000);
+    };
+    S.ws.onerror = function() {};
+}
+
+function send(msg) {
+    if (S.ws && S.ws.readyState === WebSocket.OPEN) {
+        S.ws.send(JSON.stringify(msg));
+    }
+}
+
+/* === Screen Management === */
+function showScreen(id) {
+    var screens = document.querySelectorAll('.screen');
+    for (var i = 0; i < screens.length; i++) {
+        screens[i].classList.remove('active');
+    }
+    var target = document.getElementById('screen-' + id);
+    if (target) {
+        target.classList.add('active');
+        S.currentScreen = id;
+    }
+}
+
+function goHome(skipRefresh) {
+    showScreen('hub');
+    if (!skipRefresh) {
+        send({ type: 'get_profile' });
+    }
+}
+
+/* === Toast === */
+function showToast(text, type) {
+    var container = document.getElementById('toast-container');
+    var toast = document.createElement('div');
+    toast.className = 'toast' + (type ? ' ' + type : '');
+    toast.textContent = text;
+    container.appendChild(toast);
+    setTimeout(function() { toast.remove(); }, 3000);
+}
+
+/* === Message Handler === */
+function handleMessage(msg) {
+    switch (msg.type) {
+    case 'error':
+        showToast(msg.message, 'error');
+        break;
+    case 'login_success':
+        S.user = msg.username;
+        S.account = msg;
+        localStorage.setItem('bb_token', msg.token);
+        if (msg.needs_starter) {
+            showStarterScreen(msg);
+        } else {
+            updateHub(msg);
+            showScreen('hub');
+        }
+        break;
+    case 'auto_login_success':
+        S.user = msg.username;
+        S.account = msg;
+        if (msg.needs_starter) {
+            showStarterScreen(msg);
+        } else {
+            updateHub(msg);
+            showScreen('hub');
+        }
+        break;
+    case 'auto_login_failed':
+        localStorage.removeItem('bb_token');
+        showScreen('login');
+        break;
+    case 'pin_required':
+        S.pendingUsername = msg.username;
+        showPinVerify(msg.username);
+        break;
+    case 'pin_setup_required':
+        S.pendingUsername = msg.username;
+        showPinSetup(msg.username);
+        break;
+    case 'pin_ok':
+        // Continue login
+        break;
+    case 'starter_chosen':
+        S.account = msg;
+        updateHub(msg);
+        showScreen('hub');
+        showToast('Welcome, Blader! Your ' + (msg.starter_name || 'Beyblade') + ' is ready!', 'success');
+        break;
+    case 'profile_data':
+        S.account = msg;
+        updateHub(msg);
+        break;
+    case 'game_data':
+        S.gameData = msg;
+        break;
+    // Room / PvP
+    case 'room_created':
+        S.roomCode = msg.code;
+        showScreen('lobby');
+        document.getElementById('lobby-code').textContent = msg.code;
+        break;
+    case 'room_joined':
+        S.roomCode = msg.code;
+        S.myPlayerIndex = msg.player_index;
+        break;
+    case 'opponent_joined':
+        showToast(msg.opponent_name + ' joined!', 'success');
+        break;
+    case 'opponent_disconnected':
+        showToast(msg.text, 'error');
+        goHome();
+        break;
+    case 'room_closed':
+        showToast(msg.text || 'Room closed.', 'error');
+        goHome();
+        break;
+    // Beyblade Select
+    case 'beyblade_select_start':
+        showBeybladeSelectScreen(msg);
+        break;
+    case 'beyblade_locked':
+        showToast('Beyblade locked in!', 'success');
+        break;
+    case 'beyblade_auto_assigned':
+        showToast(msg.text);
+        break;
+    case 'opponent_ready':
+        var readyEl = document.getElementById('opponent-ready-status');
+        if (readyEl) readyEl.textContent = 'Opponent ready!';
+        break;
+    // Launch
+    case 'launch_start':
+        showLaunchScreen(msg);
+        break;
+    case 'launch_confirmed':
+        showToast('Launch set! Waiting...', 'success');
+        break;
+    case 'opponent_launch_locked':
+        // Just informational
+        break;
+    // Battle
+    case 'battle_start':
+        startBattle(msg);
+        break;
+    case 'tick_update':
+        updateTick(msg);
+        break;
+    case 'action_window':
+        showActionWindow(msg);
+        break;
+    case 'action_confirmed':
+        S.actionSent = true;
+        hideActionPanel();
+        setBattleText('Action: ' + msg.action.toUpperCase());
+        break;
+    case 'opponent_action_locked':
+        break;
+    // Game over
+    case 'game_over':
+        showResult(msg);
+        break;
+    case 'rematch_request':
+        showToast(msg.text);
+        break;
+    case 'rematch_start':
+        showToast('Rematch starting!');
+        break;
+    // Journey / Free Battle
+    case 'free_battle_start':
+        S.myPlayerIndex = 0;
+        startBattle(msg);
+        break;
+    case 'free_battle_result':
+        showFreeBattleResult(msg);
+        break;
+    // Masters
+    case 'masters_list':
+        renderMastersList(msg);
+        break;
+    case 'master_intro':
+        showMasterIntro(msg.master);
+        break;
+    case 'master_battle_start':
+        S.myPlayerIndex = 0;
+        startBattle(msg);
+        break;
+    case 'master_victory':
+        showMasterVictory(msg);
+        break;
+    case 'master_defeat':
+        showMasterDefeat(msg);
+        break;
+    // Shop
+    case 'shop_data':
+        renderShop(msg);
+        break;
+    case 'buy_result':
+        handleBuyResult(msg);
+        break;
+    // Parts / Beyblades
+    case 'parts_data':
+        S.parts = msg.parts || [];
+        renderWorkshopParts();
+        break;
+    case 'beyblades_data':
+        S.beyblades = msg.beyblades || [];
+        renderBuilder();
+        break;
+    case 'assemble_ok':
+        showToast('Beyblade assembled!', 'success');
+        S.selectedBlade = null; S.selectedRatchet = null; S.selectedBit = null;
+        updateAssemblySlots();
+        send({ type: 'get_beyblades' });
+        send({ type: 'get_parts' });
+        break;
+    // Catalog
+    case 'catalog_data':
+        renderCatalog(msg);
+        break;
+    // Trade
+    case 'trade_room_created':
+        S.tradeCode = msg.code;
+        showScreen('tradewait');
+        document.getElementById('trade-lobby-code').textContent = msg.code;
+        break;
+    case 'trade_room_joined':
+        S.tradeCode = msg.code;
+        S.tradePartner = msg.partner_name;
+        document.getElementById('trade-partner-label').textContent = (msg.partner_name || 'PARTNER').toUpperCase() + "'S OFFER";
+        showScreen('trade');
+        break;
+    case 'trade_partner_joined':
+        S.tradePartner = msg.partner_name;
+        document.getElementById('trade-partner-label').textContent = (msg.partner_name || 'PARTNER').toUpperCase() + "'S OFFER";
+        showScreen('trade');
+        break;
+    case 'trade_parts_list':
+        renderTradePartsList(msg);
+        break;
+    case 'trade_offer_set':
+        S.tradeMyOffer = msg.offer;
+        renderTradeMyOffer(msg.offer);
+        break;
+    case 'trade_partner_offer':
+        renderTradePartnerOffer(msg.offer);
+        break;
+    case 'trade_partner_confirmed':
+        document.getElementById('trade-partner-confirmed').style.display = 'block';
+        break;
+    case 'trade_complete':
+        showToast('Trade complete!', 'success');
+        goHome();
+        break;
+    case 'trade_cancelled':
+    case 'trade_left':
+        showToast('Trade ended.');
+        goHome();
+        break;
+    // Tournament
+    case 'tournament_data':
+        renderTournament(msg);
+        if (S.currentScreen !== 'tournament') showScreen('tournament');
+        break;
+    case 'tournament_battle_start':
+        S.myPlayerIndex = 0;
+        startBattle(msg);
+        break;
+    case 'tournament_victory':
+        showTournamentVictory(msg);
+        break;
+    case 'tournament_defeat':
+        showToast(msg.message || 'Tournament over.');
+        goHome();
+        break;
+    // Elite list
+    case 'elite_list':
+        renderEliteList(msg);
+        break;
+    // Training
+    case 'training_start':
+        S.myPlayerIndex = 0;
+        startBattle(msg);
+        break;
+    default:
+        console.log('Unknown message:', msg.type, msg);
+    }
+}
+
+/* === Login === */
+function doLogin() {
+    var username = document.getElementById('login-username').value.trim();
+    if (!username) {
+        document.getElementById('login-error').textContent = 'Enter a username.';
+        return;
+    }
+    document.getElementById('login-error').textContent = '';
+    S.pendingUsername = username;
+    send({ type: 'login', username: username });
+}
+
+function showPinSetup(username) {
+    document.getElementById('login-form-main').style.display = 'none';
+    document.getElementById('pin-setup').style.display = 'flex';
+    document.getElementById('pin-verify').style.display = 'none';
+    document.getElementById('pin-setup-subtitle').textContent = 'Welcome, ' + username + '! Set a 4-digit code.';
+    setupPinInputs('pin-s', 4);
+}
+
+function showPinVerify(username) {
+    document.getElementById('login-form-main').style.display = 'none';
+    document.getElementById('pin-setup').style.display = 'none';
+    document.getElementById('pin-verify').style.display = 'flex';
+    document.getElementById('pin-verify-subtitle').textContent = 'Welcome back, ' + username + '!';
+    setupPinInputs('pin-v', 4);
+}
+
+function setupPinInputs(prefix, count) {
+    for (var i = 1; i <= count; i++) {
+        var el = document.getElementById(prefix + i);
+        el.value = '';
+        (function(idx, pfx) {
+            el.oninput = function() {
+                if (this.value.length === 1 && idx < count) {
+                    document.getElementById(pfx + (idx + 1)).focus();
+                }
+            };
+            el.onkeydown = function(e) {
+                if (e.key === 'Backspace' && !this.value && idx > 1) {
+                    document.getElementById(pfx + (idx - 1)).focus();
+                }
+            };
+        })(i, prefix);
+    }
+    document.getElementById(prefix + '1').focus();
+}
+
+function submitPinSetup() {
+    var pin = '';
+    for (var i = 1; i <= 4; i++) pin += document.getElementById('pin-s' + i).value;
+    if (pin.length !== 4) {
+        document.getElementById('pin-setup-error').textContent = 'Enter all 4 digits.';
+        return;
+    }
+    document.getElementById('pin-setup-error').textContent = '';
+    send({ type: 'set_pin', username: S.pendingUsername, pin: pin });
+}
+
+function submitPinVerify() {
+    var pin = '';
+    for (var i = 1; i <= 4; i++) pin += document.getElementById('pin-v' + i).value;
+    if (pin.length !== 4) {
+        document.getElementById('pin-verify-error').textContent = 'Enter all 4 digits.';
+        return;
+    }
+    document.getElementById('pin-verify-error').textContent = '';
+    send({ type: 'verify_pin', username: S.pendingUsername, pin: pin });
+}
+
+function logout() {
+    localStorage.removeItem('bb_token');
+    S.user = null;
+    S.account = null;
+    document.getElementById('login-form-main').style.display = 'flex';
+    document.getElementById('pin-setup').style.display = 'none';
+    document.getElementById('pin-verify').style.display = 'none';
+    document.getElementById('login-username').value = '';
+    showScreen('login');
+}
+
+/* === Starter === */
+function showStarterScreen(msg) {
+    showScreen('starter');
+    S.selectedStarter = null;
+    var grid = document.getElementById('starter-grid');
+    var kits = msg.starter_kits || {};
+    var html = '';
+    var kitKeys = Object.keys(kits);
+    for (var k = 0; k < kitKeys.length; k++) {
+        var key = kitKeys[k];
+        var kit = kits[key];
+        var blade = kit.blade_data || {};
+        var stats = blade.base_stats || {};
+        html += '<div class="starter-card" data-kit="' + key + '" onclick="selectStarter(this, \'' + key + '\')">';
+        html += '<div class="starter-bey-svg">' + generateBeybladeSVG(blade.element || 'fire', blade.type || 'attack', 80) + '</div>';
+        html += '<div class="starter-name">' + (kit.name || key) + '</div>';
+        html += '<div class="badges">';
+        html += '<span class="type-badge ' + (blade.type || '') + '">' + (blade.type || '').toUpperCase() + '</span>';
+        html += '<span class="elem-badge ' + (blade.element || '') + '">' + (blade.element || '').toUpperCase() + '</span>';
+        html += '</div>';
+        html += '<div class="starter-stats">';
+        html += makeStatBar('ATK', stats.attack || 0, 100, 'atk');
+        html += makeStatBar('DEF', stats.defense || 0, 100, 'def');
+        html += makeStatBar('STA', stats.stamina || 0, 100, 'sta');
+        html += makeStatBar('SPD', stats.speed || 0, 100, 'spd');
+        html += '</div>';
+        html += '<div class="starter-desc">' + (kit.description || '') + '</div>';
+        html += '</div>';
+    }
+    grid.innerHTML = html;
+    document.getElementById('starter-confirm-btn').disabled = true;
+}
+
+function selectStarter(el, key) {
+    var cards = document.querySelectorAll('.starter-card');
+    for (var i = 0; i < cards.length; i++) cards[i].classList.remove('selected');
+    el.classList.add('selected');
+    S.selectedStarter = key;
+    document.getElementById('starter-confirm-btn').disabled = false;
+    document.getElementById('starter-confirm-btn').textContent = 'CHOOSE ' + el.querySelector('.starter-name').textContent.toUpperCase();
+}
+
+function confirmStarter() {
+    if (!S.selectedStarter) return;
+    send({ type: 'choose_starter', starter_id: S.selectedStarter });
+}
+
+/* === Hub === */
+function updateHub(data) {
+    var profile = document.getElementById('hub-profile');
+    var xpProgress = data.xp_progress || 0;
+    var xpToNext = data.xp_to_next || 0;
+    profile.innerHTML =
+        '<div class="hub-profile-row">' +
+            '<span class="hub-username">' + esc(data.username || S.user || '---') + '</span>' +
+            '<span class="hub-rank">Rank ' + (data.rank_level || 1) + '</span>' +
+        '</div>' +
+        '<div class="hub-profile-row">' +
+            '<span class="hub-bp">' + (data.bey_points || 0) + ' BP</span>' +
+            '<span style="font-size:var(--fs-xs);color:var(--text-dim)">' + xpToNext + ' XP to next rank</span>' +
+        '</div>' +
+        '<div class="hub-xp-bar"><div class="hub-xp-fill" style="width:' + (xpProgress * 100) + '%"></div></div>';
+}
+
+/* === Builder (My Beyblades) === */
+function showBuilder() {
+    showScreen('builder');
+    send({ type: 'get_beyblades' });
+}
+
+function renderBuilder() {
+    var teamDiv = document.getElementById('builder-team');
+    var storageDiv = document.getElementById('builder-storage');
+    var teamBeys = S.beyblades.filter(function(b) { return b.is_in_team; });
+    var storageBeys = S.beyblades.filter(function(b) { return !b.is_in_team; });
+
+    var html = '';
+    if (teamBeys.length === 0) {
+        html = '<div style="color:var(--text-dim);font-size:var(--fs-sm);padding:12px;text-align:center">No Beyblades in team. Assemble one in the Workshop!</div>';
+    }
+    for (var i = 0; i < teamBeys.length; i++) {
+        html += renderBeyCard(teamBeys[i], true);
+    }
+    teamDiv.innerHTML = html;
+
+    html = '';
+    for (var j = 0; j < storageBeys.length; j++) {
+        html += '<div class="storage-card" onclick="addToTeam(' + storageBeys[j].id + ')">' +
+            generateBeybladeSVG(storageBeys[j].element || 'fire', storageBeys[j].bey_type || 'attack', 60) +
+            '<div class="storage-name">' + esc(storageBeys[j].name || storageBeys[j].blade_name || '???') + '</div>' +
+            '</div>';
+    }
+    if (storageBeys.length === 0) {
+        html = '<div style="color:var(--text-dim);font-size:var(--fs-xs);padding:8px;text-align:center">No stored Beyblades</div>';
+    }
+    storageDiv.innerHTML = html;
+}
+
+function renderBeyCard(bey, inTeam) {
+    var h = '<div class="bey-card">';
+    h += '<div class="bey-svg-wrap">' + generateBeybladeSVG(bey.element || 'fire', bey.bey_type || 'attack', 70) + '</div>';
+    h += '<div class="bey-info">';
+    h += '<div class="bey-name">' + esc(bey.name || bey.blade_name || '???') + '</div>';
+    h += '<div class="bey-parts">' + esc(bey.blade_name || '') + ' / ' + esc(bey.ratchet_name || '') + ' / ' + esc(bey.bit_name || '') + '</div>';
+    h += '<div class="badges">';
+    h += '<span class="type-badge ' + (bey.bey_type || '') + '">' + (bey.bey_type || '').toUpperCase() + '</span>';
+    h += '<span class="elem-badge ' + (bey.element || '') + '">' + (bey.element || '').toUpperCase() + '</span>';
+    h += '</div>';
+    h += makeStatBar('ATK', bey.attack || 0, 150, 'atk');
+    h += makeStatBar('DEF', bey.defense || 0, 150, 'def');
+    h += makeStatBar('STA', bey.stamina_stat || 0, 150, 'sta');
+    h += makeStatBar('SPD', bey.speed || 0, 150, 'spd');
+    h += '<div class="bey-actions">';
+    if (inTeam) {
+        h += '<button class="btn btn-secondary" onclick="removeFromTeam(' + bey.id + ')">REMOVE</button>';
+    } else {
+        h += '<button class="btn btn-primary" onclick="addToTeam(' + bey.id + ')">ADD TO TEAM</button>';
+    }
+    h += '</div></div></div>';
+    return h;
+}
+
+function addToTeam(beyId) { send({ type: 'add_to_team', beyblade_id: beyId }); }
+function removeFromTeam(beyId) { send({ type: 'remove_from_team', beyblade_id: beyId }); }
+
+/* === Workshop === */
+function showWorkshop() {
+    showScreen('workshop');
+    S.selectedBlade = null; S.selectedRatchet = null; S.selectedBit = null;
+    S.workshopTab = 'blades';
+    updateAssemblySlots();
+    send({ type: 'get_parts' });
+}
+
+function setWorkshopTab(el, tab) {
+    var tabs = document.querySelectorAll('.workshop-tab');
+    for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove('active');
+    el.classList.add('active');
+    S.workshopTab = tab;
+    renderWorkshopParts();
+}
+
+function renderWorkshopParts() {
+    var grid = document.getElementById('workshop-parts');
+    var parts = S.parts.filter(function(p) { return p.part_type === S.workshopTab.replace(/s$/, ''); });
+    var html = '';
+    for (var i = 0; i < parts.length; i++) {
+        var p = parts[i];
+        var isSelected = false;
+        if (S.workshopTab === 'blades' && S.selectedBlade && S.selectedBlade.id === p.id) isSelected = true;
+        if (S.workshopTab === 'ratchets' && S.selectedRatchet && S.selectedRatchet.id === p.id) isSelected = true;
+        if (S.workshopTab === 'bits' && S.selectedBit && S.selectedBit.id === p.id) isSelected = true;
+        html += '<div class="part-card' + (isSelected ? ' selected' : '') + '" onclick="selectPart(' + JSON.stringify(p).replace(/"/g, '&quot;') + ')">';
+        html += '<div class="part-name">' + esc(p.name) + '</div>';
+        html += '<span class="rarity-badge ' + (p.rarity || 'common') + '">' + (p.rarity || 'common').toUpperCase() + '</span>';
+        html += '<div class="part-meta">Lv.' + (p.level || 1) + '</div>';
+        html += '</div>';
+    }
+    if (!html) html = '<div style="grid-column:1/-1;text-align:center;color:var(--text-dim);padding:20px">No ' + S.workshopTab + ' in inventory</div>';
+    grid.innerHTML = html;
+}
+
+function selectPart(part) {
+    var ptype = part.part_type;
+    if (ptype === 'blade') S.selectedBlade = part;
+    else if (ptype === 'ratchet') S.selectedRatchet = part;
+    else if (ptype === 'bit') S.selectedBit = part;
+    renderWorkshopParts();
+    updateAssemblySlots();
+}
+
+function updateAssemblySlots() {
+    var sb = document.getElementById('slot-blade');
+    var sr = document.getElementById('slot-ratchet');
+    var sbi = document.getElementById('slot-bit');
+    sb.innerHTML = S.selectedBlade ? '<div class="slot-name">' + esc(S.selectedBlade.name) + '</div>' : '<div class="slot-label">BLADE</div>';
+    sr.innerHTML = S.selectedRatchet ? '<div class="slot-name">' + esc(S.selectedRatchet.name) + '</div>' : '<div class="slot-label">RATCHET</div>';
+    sbi.innerHTML = S.selectedBit ? '<div class="slot-name">' + esc(S.selectedBit.name) + '</div>' : '<div class="slot-label">BIT</div>';
+    sb.className = 'assembly-slot' + (S.selectedBlade ? ' filled' : '');
+    sr.className = 'assembly-slot' + (S.selectedRatchet ? ' filled' : '');
+    sbi.className = 'assembly-slot' + (S.selectedBit ? ' filled' : '');
+    var canAssemble = S.selectedBlade && S.selectedRatchet && S.selectedBit;
+    document.getElementById('assemble-btn').disabled = !canAssemble;
+
+    // Show preview if all selected
+    var previewDiv = document.getElementById('assembly-preview');
+    if (canAssemble) {
+        previewDiv.style.display = 'flex';
+        document.getElementById('preview-svg').innerHTML = generateBeybladeSVG(
+            S.selectedBlade.element || 'fire',
+            S.selectedBlade.bey_type || S.selectedBlade.type || 'attack', 70
+        );
+        // Approximate stats
+        var bs = S.selectedBlade.base_stats || {};
+        var rs = S.selectedRatchet.base_stats || {};
+        var bis = S.selectedBit.base_stats || {};
+        var atk = (bs.attack||0)+(rs.attack||0)+(bis.attack||0);
+        var def = (bs.defense||0)+(rs.defense||0)+(bis.defense||0);
+        var sta = (bs.stamina||0)+(rs.stamina||0)+(bis.stamina||0);
+        var spd = (bs.speed||0)+(rs.speed||0)+(bis.speed||0);
+        document.getElementById('preview-stats').innerHTML =
+            makeStatBar('ATK', atk, 150, 'atk') +
+            makeStatBar('DEF', def, 150, 'def') +
+            makeStatBar('STA', sta, 150, 'sta') +
+            makeStatBar('SPD', spd, 150, 'spd');
+    } else {
+        previewDiv.style.display = 'none';
+    }
+}
+
+function assembleBey() {
+    if (!S.selectedBlade || !S.selectedRatchet || !S.selectedBit) return;
+    send({
+        type: 'assemble_beyblade',
+        blade_part_id: S.selectedBlade.id,
+        ratchet_part_id: S.selectedRatchet.id,
+        bit_part_id: S.selectedBit.id,
+    });
+}
+
+/* === Shop === */
+function showShop() {
+    showScreen('shop');
+    send({ type: 'get_shop' });
+}
+
+function renderShop(msg) {
+    document.getElementById('shop-currency').textContent = (msg.bey_points || 0) + ' BP';
+    var items = msg.items || {};
+    var categories = {};
+    var keys = Object.keys(items);
+    for (var i = 0; i < keys.length; i++) {
+        var item = items[keys[i]];
+        item._id = keys[i];
+        var cat = item.category || 'misc';
+        if (!categories[cat]) categories[cat] = [];
+        categories[cat].push(item);
+    }
+    var html = '';
+    var catNames = { repair: 'Repair Items', upgrade: 'Upgrade Crystals', pack: 'Part Packs', held: 'Held Items' };
+    var catOrder = ['repair', 'upgrade', 'pack', 'held'];
+    for (var c = 0; c < catOrder.length; c++) {
+        var catKey = catOrder[c];
+        var catItems = categories[catKey];
+        if (!catItems || catItems.length === 0) continue;
+        html += '<div class="shop-category">' + (catNames[catKey] || catKey) + '</div>';
+        html += '<div class="shop-grid">';
+        for (var j = 0; j < catItems.length; j++) {
+            var it = catItems[j];
+            var canBuy = (msg.bey_points || 0) >= (it.price || 0);
+            html += '<div class="shop-item">';
+            html += '<div class="item-name">' + esc(it.name) + '</div>';
+            html += '<div class="item-price">' + (it.price || 0) + ' BP</div>';
+            html += '<button class="btn btn-gold" onclick="buyItem(\'' + it._id + '\')"' + (canBuy ? '' : ' disabled') + '>BUY</button>';
+            html += '</div>';
+        }
+        html += '</div>';
+    }
+    document.getElementById('shop-items').innerHTML = html;
+}
+
+function buyItem(itemId) {
+    send({ type: 'buy_item', item_id: itemId });
+}
+
+function handleBuyResult(msg) {
+    if (msg.success) {
+        showToast('Purchased ' + (msg.item_name || 'item') + '!', 'success');
+        send({ type: 'get_shop' });
+    } else {
+        showToast(msg.message || 'Purchase failed.', 'error');
+    }
+}
+
+/* === Masters === */
+function showMasters() {
+    showScreen('masters');
+    send({ type: 'get_masters' });
+}
+
+function renderMastersList(msg) {
+    var grid = document.getElementById('masters-grid');
+    var masters = msg.masters || [];
+    var trophies = msg.trophies || [];
+    var html = '';
+    var icons = ['&#9876;', '&#9813;', '&#9823;', '&#9812;', '&#9816;', '&#9814;', '&#9815;', '&#9819;'];
+    for (var i = 0; i < masters.length; i++) {
+        var m = masters[i];
+        var earned = trophies.indexOf(m.trophy) >= 0;
+        var locked = i > 0 && !trophies.length ? true : false;
+        html += '<div class="master-card' + (locked ? ' locked' : '') + '" onclick="' + (locked ? '' : 'challengeMaster(' + m.id + ')') + '">';
+        html += '<div class="master-portrait">' + (icons[i] || '&#9733;') + '</div>';
+        html += '<div class="master-name">' + esc(m.name) + '</div>';
+        html += '<div class="master-title-text">' + esc(m.title) + '</div>';
+        html += '<div style="display:flex;gap:3px;justify-content:center;margin-top:4px">';
+        html += '<span class="type-badge ' + (m.specialty || '') + '">' + (m.specialty || '').toUpperCase() + '</span>';
+        html += '<span class="elem-badge ' + (m.element || '') + '">' + (m.element || '').toUpperCase() + '</span>';
+        html += '</div>';
+        html += '<div class="trophy ' + (earned ? 'earned' : 'unearned') + '">' + (earned ? '&#9733;' : '&#9734;') + '</div>';
+        html += '</div>';
+    }
+    grid.innerHTML = html;
+}
+
+function challengeMaster(masterId) {
+    send({ type: 'master_intro', master_id: masterId });
+}
+
+function showMasterIntro(master) {
+    showScreen('masterintro');
+    var icons = ['&#9876;', '&#9813;', '&#9823;', '&#9812;', '&#9816;', '&#9814;', '&#9815;', '&#9819;'];
+    document.getElementById('masterintro-portrait').innerHTML = icons[(master.id || 1) - 1] || '&#9733;';
+    document.getElementById('masterintro-name').textContent = master.name || 'Unknown';
+    document.getElementById('masterintro-title-text').textContent = master.title || '';
+    document.getElementById('masterintro-badges').innerHTML =
+        '<span class="type-badge ' + (master.specialty || '') + '">' + (master.specialty || '').toUpperCase() + '</span>' +
+        '<span class="elem-badge ' + (master.element || '') + '">' + (master.element || '').toUpperCase() + '</span>';
+    document.getElementById('masterintro-dialog').textContent = master.dialog_intro || '';
+    document.getElementById('masterintro-battle-btn').onclick = function() {
+        send({ type: 'master_battle_start', master_id: master.id });
+    };
+    document.getElementById('masterintro-back-btn').onclick = function() { showMasters(); };
+}
+
+function showMasterVictory(msg) {
+    var el = document.getElementById('result-title');
+    el.textContent = 'VICTORY!';
+    el.className = 'result-title win';
+    document.getElementById('result-finish').textContent = msg.trophy || 'Badge earned!';
+    document.getElementById('result-details').textContent = msg.dialog_win || '';
+    var rewards = '+' + (msg.reward_bp || 0) + ' BP';
+    if (msg.reward_part) rewards += ' | New part: ' + msg.reward_part;
+    document.getElementById('result-rewards').textContent = rewards;
+    showScreen('result');
+}
+
+function showMasterDefeat(msg) {
+    var el = document.getElementById('result-title');
+    el.textContent = 'DEFEAT';
+    el.className = 'result-title lose';
+    document.getElementById('result-finish').textContent = '';
+    document.getElementById('result-details').textContent = msg.dialog_lose || 'Try again...';
+    document.getElementById('result-rewards').textContent = '';
+    showScreen('result');
+}
+
+/* === Battle === */
+function startBattle(msg) {
+    showScreen('stadium');
+    S.currentBey = msg.your_beyblade;
+    S.opponentBey = msg.opponent_beyblade;
+    S.actionSent = false;
+
+    // Set HUD
+    updateHUD(msg.your_beyblade, msg.opponent_beyblade);
+
+    // Place beyblades in ring
+    var ring = document.getElementById('stadium-ring');
+    var p1 = document.getElementById('bey-p1');
+    var p2 = document.getElementById('bey-p2');
+    p1.innerHTML = generateBeybladeSVG(
+        (msg.your_beyblade || {}).element || 'fire',
+        (msg.your_beyblade || {}).bey_type || 'attack', 40
+    );
+    p2.innerHTML = generateBeybladeSVG(
+        (msg.opponent_beyblade || {}).element || 'fire',
+        (msg.opponent_beyblade || {}).bey_type || 'attack', 40
+    );
+    p1.classList.add('bey-spinning');
+    p2.classList.add('bey-spinning');
+
+    // Initial position
+    positionBey(p1, msg.your_beyblade || {}, ring);
+    positionBey(p2, msg.opponent_beyblade || {}, ring);
+
+    setBattleText('3... 2... 1... LET IT RIP!');
+    hideActionPanel();
+}
+
+function positionBey(el, bey, ring) {
+    var ringW = ring.offsetWidth || 280;
+    var ringH = ring.offsetHeight || 280;
+    var cx = ringW / 2;
+    var cy = ringH / 2;
+    var scale = (ringW / 2) / 100; // stadium radius is 100 in engine
+    var bx = (bey.x || 0) * scale + cx - 20;
+    var by = (bey.y || 0) * scale + cy - 20;
+    el.style.left = bx + 'px';
+    el.style.top = by + 'px';
+}
+
+function updateTick(msg) {
+    var stadium = msg.stadium || {};
+    var bey1 = stadium.bey1 || {};
+    var bey2 = stadium.bey2 || {};
+    var myBey, oppBey;
+    if (S.myPlayerIndex === 0) { myBey = bey1; oppBey = bey2; }
+    else { myBey = bey2; oppBey = bey1; }
+
+    // Update positions
+    var ring = document.getElementById('stadium-ring');
+    positionBey(document.getElementById('bey-p1'), myBey, ring);
+    positionBey(document.getElementById('bey-p2'), oppBey, ring);
+
+    // Update spin speed class
+    updateSpinClass(document.getElementById('bey-p1'), myBey);
+    updateSpinClass(document.getElementById('bey-p2'), oppBey);
+
+    // Update HUD
+    updateHUD(myBey, oppBey);
+
+    // Process events
+    var events = msg.events || [];
+    for (var i = 0; i < events.length; i++) {
+        var evt = events[i];
+        if (evt.type === 'collision') {
+            showCollision(evt, ring);
+            setBattleText(evt.text || 'CLASH!');
+        } else if (evt.type === 'ring_out') {
+            setBattleText(evt.bey_name + ' was knocked out of the stadium!');
+        } else if (evt.type === 'burst') {
+            showBurstEffect(evt, ring);
+            setBattleText(evt.bey_name + ' BURST!');
+        } else if (evt.type === 'spin_stop') {
+            setBattleText(evt.bey_name + ' stopped spinning!');
+        }
+    }
+}
+
+function updateSpinClass(el, bey) {
+    el.classList.remove('slow', 'very-slow');
+    if (!bey) return;
+    var pct = (bey.current_stamina || 0) / (bey.max_stamina || 1);
+    if (pct < 0.2) el.classList.add('very-slow');
+    else if (pct < 0.5) el.classList.add('slow');
+}
+
+function updateHUD(myBey, oppBey) {
+    if (!myBey || !oppBey) return;
+    // Names
+    document.getElementById('hud-p1-name').textContent = myBey.name || myBey.blade_name || 'You';
+    document.getElementById('hud-p2-name').textContent = oppBey.name || oppBey.blade_name || 'Opponent';
+
+    // Badges
+    document.getElementById('hud-p1-badges').innerHTML =
+        '<span class="type-badge ' + (myBey.bey_type || '') + '" style="font-size:8px;padding:1px 4px">' + (myBey.bey_type || '').toUpperCase() + '</span>' +
+        '<span class="elem-badge ' + (myBey.element || '') + '" style="font-size:8px;padding:1px 4px">' + (myBey.element || '').toUpperCase() + '</span>';
+    document.getElementById('hud-p2-badges').innerHTML =
+        '<span class="type-badge ' + (oppBey.bey_type || '') + '" style="font-size:8px;padding:1px 4px">' + (oppBey.bey_type || '').toUpperCase() + '</span>' +
+        '<span class="elem-badge ' + (oppBey.element || '') + '" style="font-size:8px;padding:1px 4px">' + (oppBey.element || '').toUpperCase() + '</span>';
+
+    // Stamina bars
+    var myStamPct = Math.max(0, (myBey.current_stamina || 0) / (myBey.max_stamina || 1) * 100);
+    var oppStamPct = Math.max(0, (oppBey.current_stamina || 0) / (oppBey.max_stamina || 1) * 100);
+    var myStamBar = document.getElementById('hud-p1-stamina');
+    var oppStamBar = document.getElementById('hud-p2-stamina');
+    myStamBar.style.width = myStamPct + '%';
+    oppStamBar.style.width = oppStamPct + '%';
+    myStamBar.className = 'stamina-bar-fill' + (myStamPct < 20 ? ' critical' : myStamPct < 50 ? ' warning' : '');
+    oppStamBar.className = 'stamina-bar-fill' + (oppStamPct < 20 ? ' critical' : oppStamPct < 50 ? ' warning' : '');
+    document.getElementById('hud-p1-stamina-text').textContent = Math.round(myStamPct) + '%';
+    document.getElementById('hud-p2-stamina-text').textContent = Math.round(oppStamPct) + '%';
+
+    // Burst meters
+    var myBurstPct = Math.min(100, (myBey.burst_meter || 0));
+    var oppBurstPct = Math.min(100, (oppBey.burst_meter || 0));
+    document.getElementById('hud-p1-burst').style.width = myBurstPct + '%';
+    document.getElementById('hud-p2-burst').style.width = oppBurstPct + '%';
+    document.getElementById('hud-p1-burst-text').textContent = 'Burst: ' + Math.round(myBurstPct) + '%';
+    document.getElementById('hud-p2-burst-text').textContent = 'Burst: ' + Math.round(oppBurstPct) + '%';
+}
+
+function showCollision(evt, ring) {
+    var flash = document.createElement('div');
+    flash.className = 'collision-flash';
+    var cx = (ring.offsetWidth || 280) / 2;
+    var cy = (ring.offsetHeight || 280) / 2;
+    flash.style.left = (cx + (evt.x || 0) * ((ring.offsetWidth || 280) / 200) - 15) + 'px';
+    flash.style.top = (cy + (evt.y || 0) * ((ring.offsetHeight || 280) / 200) - 15) + 'px';
+    ring.appendChild(flash);
+    setTimeout(function() { flash.remove(); }, 400);
+}
+
+function showBurstEffect(evt, ring) {
+    var cx = (ring.offsetWidth || 280) / 2;
+    var cy = (ring.offsetHeight || 280) / 2;
+    var colors = ['var(--accent)', 'var(--accent2)', 'var(--gold)', '#fff'];
+    for (var i = 0; i < 8; i++) {
+        var piece = document.createElement('div');
+        piece.className = 'burst-piece';
+        piece.style.background = colors[i % colors.length];
+        piece.style.left = cx + 'px';
+        piece.style.top = cy + 'px';
+        var angle = (Math.PI * 2 / 8) * i;
+        var dist = 40 + Math.random() * 30;
+        piece.style.setProperty('--bx', (Math.cos(angle) * dist) + 'px');
+        piece.style.setProperty('--by', (Math.sin(angle) * dist) + 'px');
+        ring.appendChild(piece);
+        (function(p) { setTimeout(function() { p.remove(); }, 900); })(piece);
+    }
+}
+
+function setBattleText(text) {
+    document.getElementById('battle-text').textContent = text;
+}
+
+/* === Action Window === */
+function showActionWindow(msg) {
+    S.actionSent = false;
+    var panel = document.getElementById('action-panel');
+    var waiting = document.getElementById('battle-waiting');
+    panel.style.display = 'grid';
+    waiting.style.display = 'none';
+
+    // Enable/disable special
+    var specialBtn = document.getElementById('action-special-btn');
+    var available = msg.available_actions || [];
+    var hasSpecial = false;
+    for (var i = 0; i < available.length; i++) {
+        if (available[i] !== 'rush' && available[i] !== 'guard' && available[i] !== 'conserve') {
+            hasSpecial = true;
+            specialBtn.disabled = false;
+            specialBtn.textContent = available[i].toUpperCase().replace(/_/g, ' ');
+            specialBtn.dataset.action = available[i];
+        }
+    }
+    if (!hasSpecial) {
+        specialBtn.disabled = true;
+        specialBtn.textContent = 'SPECIAL';
+        specialBtn.dataset.action = '';
+    }
+
+    // Timer
+    var timeLeft = msg.time_limit || 5;
+    var timerEl = document.getElementById('action-timer');
+    timerEl.textContent = timeLeft;
+    if (S.actionTimerInterval) clearInterval(S.actionTimerInterval);
+    S.actionTimerInterval = setInterval(function() {
+        timeLeft--;
+        timerEl.textContent = Math.max(0, timeLeft);
+        if (timeLeft <= 0) {
+            clearInterval(S.actionTimerInterval);
+            if (!S.actionSent) hideActionPanel();
+        }
+    }, 1000);
+}
+
+function sendAction(action) {
+    if (S.actionSent) return;
+    if (action === 'special') {
+        var specialBtn = document.getElementById('action-special-btn');
+        action = specialBtn.dataset.action || 'special';
+    }
+    S.actionSent = true;
+    send({ type: 'battle_action', action: action });
+}
+
+function hideActionPanel() {
+    document.getElementById('action-panel').style.display = 'none';
+    document.getElementById('battle-waiting').style.display = 'block';
+    if (S.actionTimerInterval) {
+        clearInterval(S.actionTimerInterval);
+        S.actionTimerInterval = null;
+    }
+}
+
+/* === Launch Screen === */
+function showLaunchScreen(msg) {
+    showScreen('launch');
+    S.spinDirection = 'right';
+    S.launchPower = 0;
+    S.launchPosition = 'middle';
+    S.powerLocked = false;
+
+    // Preview beyblades
+    var previewHtml = '';
+    if (msg.your_beyblade) {
+        previewHtml += '<div class="launch-bey-card"><div class="bey-label">YOU</div>' +
+            generateBeybladeSVG((msg.your_beyblade || {}).element || 'fire', (msg.your_beyblade || {}).bey_type || 'attack', 60) +
+            '<div class="bey-name-label">' + esc((msg.your_beyblade || {}).name || '???') + '</div></div>';
+    }
+    if (msg.opponent_beyblade) {
+        previewHtml += '<div class="launch-bey-card"><div class="bey-label">OPPONENT</div>' +
+            generateBeybladeSVG((msg.opponent_beyblade || {}).element || 'fire', (msg.opponent_beyblade || {}).bey_type || 'attack', 60) +
+            '<div class="bey-name-label">' + esc((msg.opponent_beyblade || {}).name || '???') + '</div></div>';
+    }
+    document.getElementById('launch-preview').innerHTML = previewHtml;
+
+    // Reset toggles
+    setSpinDir('right', document.querySelectorAll('#spin-toggle .btn')[1]);
+    setPosition('middle', document.querySelectorAll('#position-toggle .btn')[1]);
+
+    // Start power meter animation
+    startPowerMeter();
+}
+
+function setSpinDir(dir, btn) {
+    S.spinDirection = dir;
+    var btns = document.querySelectorAll('#spin-toggle .btn');
+    for (var i = 0; i < btns.length; i++) btns[i].classList.remove('active');
+    if (btn) btn.classList.add('active');
+}
+
+function setPosition(pos, btn) {
+    S.launchPosition = pos;
+    var btns = document.querySelectorAll('#position-toggle .btn');
+    for (var i = 0; i < btns.length; i++) btns[i].classList.remove('active');
+    if (btn) btn.classList.add('active');
+}
+
+function startPowerMeter() {
+    S.powerLocked = false;
+    S.launchPower = 0;
+    var fill = document.getElementById('power-fill');
+    var text = document.getElementById('power-text');
+    var dir = 1;
+    function tick() {
+        if (S.powerLocked) return;
+        S.launchPower += dir * 0.02;
+        if (S.launchPower >= 1) { S.launchPower = 1; dir = -1; }
+        if (S.launchPower <= 0) { S.launchPower = 0; dir = 1; }
+        fill.style.width = (S.launchPower * 100) + '%';
+        text.textContent = Math.round(S.launchPower * 100) + '%';
+        S.powerAnimFrame = requestAnimationFrame(tick);
+    }
+    S.powerAnimFrame = requestAnimationFrame(tick);
+}
+
+function lockPower() {
+    if (S.powerLocked) return;
+    S.powerLocked = true;
+    if (S.powerAnimFrame) cancelAnimationFrame(S.powerAnimFrame);
+}
+
+function submitLaunch() {
+    if (!S.powerLocked) lockPower();
+    send({
+        type: 'submit_launch',
+        spin_direction: S.spinDirection,
+        launch_power: S.launchPower,
+        launch_position: S.launchPosition,
+    });
+}
+
+/* === Game Over / Result === */
+function showResult(msg) {
+    var el = document.getElementById('result-title');
+    el.textContent = msg.winner ? 'YOU WIN!' : 'YOU LOSE';
+    el.className = 'result-title ' + (msg.winner ? 'win' : 'lose');
+
+    var summary = msg.summary || {};
+    var finishNames = { burst: 'BURST FINISH (3 pts)', xtreme: 'XTREME FINISH (2 pts)', spin: 'SPIN FINISH (1 pt)', forfeit: 'FORFEIT (3 pts)' };
+    document.getElementById('result-finish').textContent = finishNames[summary.finish_type] || summary.finish_type || '';
+
+    var details = (summary.winner_name || '???') + ' defeated ' + (summary.loser_name || '???');
+    details += '\nScore: ' + (summary.score || [0,0]).join(' - ');
+    details += '\nCollisions: ' + (summary.collisions || 0);
+    document.getElementById('result-details').textContent = details;
+
+    var rewards = '';
+    if (msg.winner && msg.currency_gained) {
+        rewards = '+' + msg.currency_gained + ' BP';
+    }
+    if (msg.part_gained) {
+        rewards += (rewards ? ' | ' : '') + 'New part: ' + msg.part_gained;
+    }
+    document.getElementById('result-rewards').textContent = rewards;
+    showScreen('result');
+}
+
+function showFreeBattleResult(msg) {
+    showResult(msg);
+}
+
+function requestRematch() {
+    send({ type: 'rematch' });
+    showToast('Rematch requested...');
+}
+
+/* === Quick Battle (PvP) === */
+function showQuickBattle() { showScreen('title'); }
+
+function createRoom() {
+    send({ type: 'create_room' });
+}
+
+function showJoinInput() {
+    document.getElementById('join-code').style.display = 'block';
+    document.getElementById('join-btn').style.display = 'block';
+    document.getElementById('join-code').focus();
+}
+
+function joinRoom() {
+    var code = document.getElementById('join-code').value.trim().toUpperCase();
+    if (code.length !== 4) {
+        document.getElementById('title-error').textContent = 'Enter a 4-letter code.';
+        return;
+    }
+    send({ type: 'join_room', code: code });
+}
+
+function createAIBattle() {
+    send({ type: 'create_ai_battle' });
+}
+
+function leaveRoom() {
+    send({ type: 'leave_room' });
+    goHome();
+}
+
+function copyCode() {
+    var code = document.getElementById('lobby-code').textContent;
+    if (navigator.clipboard) navigator.clipboard.writeText(code);
+    showToast('Copied: ' + code);
+}
+
+/* === Beyblade Select (PvP) === */
+function showBeybladeSelectScreen(msg) {
+    showScreen('team');
+    var timer = msg.time_limit || 60;
+    var timerEl = document.getElementById('team-timer');
+    timerEl.textContent = timer;
+    var interval = setInterval(function() {
+        timer--;
+        timerEl.textContent = Math.max(0, timer);
+        if (timer <= 0) clearInterval(interval);
+    }, 1000);
+
+    // Request player's assembled beyblades
+    send({ type: 'get_beyblades' });
+    // Render them when data arrives
+}
+
+function lockBey() {
+    if (!S.selectedBeyForBattle) return;
+    send({
+        type: 'select_beyblade',
+        blade_id: S.selectedBeyForBattle.blade,
+        ratchet_id: S.selectedBeyForBattle.ratchet,
+        bit_id: S.selectedBeyForBattle.bit,
+    });
+}
+
+/* === Free Battle === */
+function startFreeBattle() {
+    send({ type: 'free_battle' });
+}
+
+function startAIBattle() {
+    send({ type: 'create_ai_battle' });
+}
+
+/* === Catalog === */
+function showCatalog() {
+    showScreen('catalog');
+    send({ type: 'get_catalog' });
+}
+
+function setCatalogTab(el, tab) {
+    var tabs = document.querySelectorAll('.catalog-tab');
+    for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove('active');
+    el.classList.add('active');
+    S.catalogTab = tab;
+    if (S._catalogData) renderCatalog(S._catalogData);
+}
+
+function renderCatalog(msg) {
+    S._catalogData = msg;
+    var grid = document.getElementById('catalog-grid');
+    var type = S.catalogTab.replace(/s$/, '');
+    var allParts = msg[S.catalogTab] || [];
+    var owned = msg.owned || [];
+    var html = '';
+    for (var i = 0; i < allParts.length; i++) {
+        var p = allParts[i];
+        var isOwned = owned.indexOf(p.id) >= 0;
+        html += '<div class="catalog-card' + (isOwned ? '' : ' unseen') + '" onclick="showCatalogDetail(' + JSON.stringify(p).replace(/"/g, '&quot;') + ', ' + isOwned + ')">';
+        html += generateBeybladeSVG(p.element || 'fire', p.type || 'attack', 50);
+        html += '<div class="catalog-name">' + (isOwned ? esc(p.name) : '???') + '</div>';
+        html += '</div>';
+    }
+    grid.innerHTML = html;
+}
+
+function showCatalogDetail(part, owned) {
+    var overlay = document.getElementById('catalog-detail-overlay');
+    var detail = document.getElementById('catalog-detail');
+    var html = '<div style="text-align:center;margin-bottom:12px">' + generateBeybladeSVG(part.element || 'fire', part.type || 'attack', 80) + '</div>';
+    html += '<div style="font-size:var(--fs-lg);font-weight:700;text-align:center">' + esc(part.name || '???') + '</div>';
+    if (owned && part.base_stats) {
+        html += '<div style="margin-top:8px">';
+        var stats = part.base_stats;
+        html += makeStatBar('ATK', stats.attack || 0, 100, 'atk');
+        html += makeStatBar('DEF', stats.defense || 0, 100, 'def');
+        html += makeStatBar('STA', stats.stamina || 0, 100, 'sta');
+        html += makeStatBar('SPD', stats.speed || 0, 100, 'spd');
+        html += '</div>';
+        if (part.description) {
+            html += '<div style="font-size:var(--fs-xs);color:var(--text-dim);margin-top:8px;text-align:center;line-height:1.6">' + esc(part.description) + '</div>';
+        }
+    } else {
+        html += '<div style="font-size:var(--fs-sm);color:var(--text-dim);text-align:center;margin-top:12px">Not yet discovered</div>';
+    }
+    html += '<button class="btn btn-secondary" onclick="closeCatalogDetail()" style="margin-top:12px;width:100%">CLOSE</button>';
+    detail.innerHTML = html;
+    overlay.classList.add('active');
+}
+
+function closeCatalogDetail() {
+    document.getElementById('catalog-detail-overlay').classList.remove('active');
+}
+
+/* === Trade === */
+function showTradeMenu() { showScreen('trademenu'); S.tradeMyOffer = null; }
+function createTradeRoom() { send({ type: 'create_trade' }); }
+function showTradeJoinInput() {
+    document.getElementById('trade-join-code').style.display = 'block';
+    document.getElementById('trade-join-btn').style.display = 'block';
+    document.getElementById('trade-join-code').focus();
+}
+function joinTradeRoom() {
+    var code = document.getElementById('trade-join-code').value.trim().toUpperCase();
+    if (code.length !== 4) {
+        document.getElementById('trade-menu-error').textContent = 'Enter a 4-letter code.';
+        return;
+    }
+    send({ type: 'join_trade', code: code });
+}
+function copyTradeCode() {
+    var code = document.getElementById('trade-lobby-code').textContent;
+    if (navigator.clipboard) navigator.clipboard.writeText(code);
+    showToast('Copied: ' + code);
+}
+function cancelTrade() {
+    send({ type: 'trade_cancel' });
+    goHome();
+}
+function renderTradePartsList(msg) {
+    var grid = document.getElementById('trade-my-parts');
+    var parts = msg.parts || [];
+    var html = '';
+    for (var i = 0; i < parts.length; i++) {
+        var p = parts[i];
+        html += '<div class="part-card" style="padding:4px;font-size:var(--fs-xs)" onclick="offerTradePart(' + p.id + ')">' + esc(p.name) + '</div>';
+    }
+    grid.innerHTML = html;
+}
+function offerTradePart(partId) { send({ type: 'trade_offer', part_id: partId }); }
+function renderTradeMyOffer(offer) {
+    var box = document.getElementById('trade-my-offer');
+    if (offer) {
+        box.className = 'trade-offer-box has-offer';
+        box.innerHTML = '<div style="font-size:var(--fs-sm);font-weight:700">' + esc(offer.name || '???') + '</div>';
+        document.getElementById('trade-confirm-btn').disabled = false;
+    }
+}
+function renderTradePartnerOffer(offer) {
+    var box = document.getElementById('trade-partner-offer');
+    if (offer) {
+        box.className = 'trade-offer-box has-offer';
+        box.innerHTML = '<div style="font-size:var(--fs-sm);font-weight:700">' + esc(offer.name || '???') + '</div>';
+    }
+}
+function confirmTrade() { send({ type: 'trade_confirm' }); }
+
+/* === Tournament === */
+function showTournament() {
+    showScreen('tournament');
+    send({ type: 'get_tournament' });
+}
+
+function renderTournament(msg) {
+    var content = document.getElementById('tournament-content');
+    if (!msg.rounds) {
+        // Entry screen
+        content.innerHTML = '<div style="text-align:center;padding:20px">' +
+            '<div style="font-size:var(--fs-md);color:var(--text);margin-bottom:16px">Enter a 4-round single-elimination tournament!</div>' +
+            '<button class="btn btn-gold" onclick="startTournament()" style="width:200px">ENTER TOURNAMENT</button>' +
+            '</div>';
+        return;
+    }
+    var rounds = msg.rounds || [];
+    var html = '';
+    for (var r = 0; r < rounds.length; r++) {
+        var round = rounds[r];
+        var isCurrent = round.current;
+        html += '<div class="bracket-round">';
+        html += '<div class="bracket-round-name">' + esc(round.name || 'Round ' + (r+1)) + '</div>';
+        html += '<div class="bracket-match' + (isCurrent ? ' current' : '') + '">';
+        html += '<span class="match-player' + (round.winner === 'player' ? ' winner' : '') + '">' + esc(msg.player_name || 'You') + '</span>';
+        html += '<span class="match-vs">VS</span>';
+        html += '<span class="match-player' + (round.winner === 'opponent' ? ' winner' : '') + '">' + esc(round.opponent_name || '???') + '</span>';
+        html += '</div>';
+        if (isCurrent && !round.winner) {
+            html += '<button class="btn btn-gold" onclick="startTournamentMatch()" style="margin-top:6px">START MATCH</button>';
+        }
+        html += '</div>';
+    }
+    content.innerHTML = html;
+}
+
+function startTournament() { send({ type: 'start_tournament' }); }
+function startTournamentMatch() { send({ type: 'tournament_battle_start' }); }
+function showTournamentVictory(msg) { showResult(msg); }
+
+/* === Elite List === */
+function showEliteList() {
+    showScreen('elitelist');
+    send({ type: 'get_elite_list' });
+}
+
+function renderEliteList(msg) {
+    var content = document.getElementById('elitelist-content');
+    var elites = msg.elites || [];
+    var html = '';
+    for (var i = 0; i < elites.length; i++) {
+        var e = elites[i];
+        html += '<div class="master-card" onclick="challengeElite(' + e.id + ')" style="display:block;margin-bottom:8px">';
+        html += '<div class="master-name">' + esc(e.name) + '</div>';
+        html += '<div class="master-title-text">' + esc(e.title || '') + '</div>';
+        html += '</div>';
+    }
+    if (!html) html = '<div style="color:var(--text-dim);text-align:center;padding:20px">No elite challengers available yet. Defeat all Stadium Masters first!</div>';
+    content.innerHTML = html;
+}
+
+function challengeElite(id) { send({ type: 'elite_challenge', elite_id: id }); }
+
+/* === Training === */
+function showTraining() {
+    showScreen('training');
+    var content = document.getElementById('training-content');
+    content.innerHTML = '<div style="text-align:center;padding:20px">' +
+        '<button class="btn btn-teal" onclick="startTrainingMatch()" style="width:200px">START TRAINING</button>' +
+        '</div>';
+}
+
+function startTrainingMatch() { send({ type: 'start_training' }); }
+
+/* === Bug Report === */
+function showBugReport() { document.getElementById('bug-overlay').classList.add('active'); }
+function closeBugReport() { document.getElementById('bug-overlay').classList.remove('active'); }
+function submitBug() {
+    var text = document.getElementById('bug-text').value.trim();
+    if (text) {
+        send({ type: 'bug_report', text: text });
+        showToast('Bug report sent!', 'success');
+        document.getElementById('bug-text').value = '';
+    }
+    closeBugReport();
+}
+
+/* ============================================================
+   SVG Beyblade Generator
+   ============================================================ */
+function generateBeybladeSVG(element, beyType, size) {
+    size = size || 120;
+    var half = size / 2;
+    var r = half * 0.9;
+    var colors = {
+        fire: ['#ff4500', '#ff8c00', '#ffcc00'],
+        water: ['#1e90ff', '#4169e1', '#00bfff'],
+        wind: ['#32cd32', '#00ff7f', '#98fb98'],
+        earth: ['#cd853f', '#8b6914', '#deb887'],
+        lightning: ['#ffd700', '#ff8c00', '#ffff00'],
+        ice: ['#87ceeb', '#b0e0e6', '#e0ffff'],
+        dark: ['#9932cc', '#4b0082', '#8b008b'],
+        light: ['#fffacd', '#ffefd5', '#fff8dc'],
+    };
+    var c = colors[element] || colors.fire;
+
+    // Outer blade shape varies by type
+    var bladeShape = '';
+    if (beyType === 'attack') {
+        // Pointed star - 6 points
+        var points = [];
+        for (var i = 0; i < 6; i++) {
+            var angle = (Math.PI * 2 / 6) * i - Math.PI / 2;
+            var outerR = r;
+            var innerR = r * 0.6;
+            points.push((half + Math.cos(angle) * outerR).toFixed(1) + ',' + (half + Math.sin(angle) * outerR).toFixed(1));
+            var midAngle = angle + Math.PI / 6;
+            points.push((half + Math.cos(midAngle) * innerR).toFixed(1) + ',' + (half + Math.sin(midAngle) * innerR).toFixed(1));
+        }
+        bladeShape = '<polygon points="' + points.join(' ') + '" fill="' + c[0] + '" stroke="' + c[1] + '" stroke-width="1.5"/>';
+    } else if (beyType === 'defense') {
+        // Smooth circle with thick rim
+        bladeShape = '<circle cx="' + half + '" cy="' + half + '" r="' + r + '" fill="' + c[0] + '" stroke="' + c[1] + '" stroke-width="3"/>';
+        bladeShape += '<circle cx="' + half + '" cy="' + half + '" r="' + (r * 0.85) + '" fill="none" stroke="' + c[2] + '" stroke-width="1" stroke-dasharray="4 2"/>';
+    } else if (beyType === 'stamina') {
+        // Smooth rounded shape with inner detail
+        bladeShape = '<circle cx="' + half + '" cy="' + half + '" r="' + r + '" fill="' + c[0] + '" stroke="' + c[1] + '" stroke-width="1.5"/>';
+        // Inner swirl
+        var swirl = '';
+        for (var s = 0; s < 3; s++) {
+            var sa = (Math.PI * 2 / 3) * s;
+            var sx1 = half + Math.cos(sa) * r * 0.3;
+            var sy1 = half + Math.sin(sa) * r * 0.3;
+            var sx2 = half + Math.cos(sa + 1) * r * 0.7;
+            var sy2 = half + Math.sin(sa + 1) * r * 0.7;
+            swirl += '<line x1="' + sx1.toFixed(1) + '" y1="' + sy1.toFixed(1) + '" x2="' + sx2.toFixed(1) + '" y2="' + sy2.toFixed(1) + '" stroke="' + c[2] + '" stroke-width="1" opacity="0.5"/>';
+        }
+        bladeShape += swirl;
+    } else {
+        // Balance - octagon
+        var octPoints = [];
+        for (var o = 0; o < 8; o++) {
+            var oa = (Math.PI * 2 / 8) * o - Math.PI / 8;
+            octPoints.push((half + Math.cos(oa) * r).toFixed(1) + ',' + (half + Math.sin(oa) * r).toFixed(1));
+        }
+        bladeShape = '<polygon points="' + octPoints.join(' ') + '" fill="' + c[0] + '" stroke="' + c[1] + '" stroke-width="1.5"/>';
+    }
+
+    // Ratchet ring (middle)
+    var ratchetR = r * 0.5;
+    var ratchet = '<circle cx="' + half + '" cy="' + half + '" r="' + ratchetR + '" fill="' + c[1] + '" stroke="#333" stroke-width="1"/>';
+    // Teeth notches
+    var teeth = '';
+    for (var t = 0; t < 4; t++) {
+        var ta = (Math.PI * 2 / 4) * t;
+        var tx = half + Math.cos(ta) * ratchetR;
+        var ty = half + Math.sin(ta) * ratchetR;
+        teeth += '<circle cx="' + tx.toFixed(1) + '" cy="' + ty.toFixed(1) + '" r="2" fill="#222"/>';
+    }
+
+    // Bit (center)
+    var bitR = r * 0.2;
+    var bit = '<circle cx="' + half + '" cy="' + half + '" r="' + bitR + '" fill="' + c[2] + '" stroke="#555" stroke-width="1"/>';
+    var bitDot = '<circle cx="' + half + '" cy="' + half + '" r="' + (bitR * 0.4) + '" fill="#fff" opacity="0.6"/>';
+
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 ' + size + ' ' + size + '">' +
+        bladeShape + ratchet + teeth + bit + bitDot + '</svg>';
+}
+
+/* ============================================================
+   Utility Functions
+   ============================================================ */
+function makeStatBar(label, value, max, cls) {
+    var pct = Math.min(100, (value / max) * 100);
+    return '<div class="stat-bar-row">' +
+        '<span class="stat-bar-label">' + label + '</span>' +
+        '<div class="stat-bar-track"><div class="stat-bar-fill ' + cls + '" style="width:' + pct + '%"></div></div>' +
+        '<span class="stat-bar-value">' + value + '</span></div>';
+}
+
+function esc(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+/* ============================================================
+   Init
+   ============================================================ */
+// Keyboard: Enter submits login
+document.getElementById('login-username').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') doLogin();
+});
+
+connect();
+</script>
+</body>
+</html>
