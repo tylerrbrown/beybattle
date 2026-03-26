@@ -21,10 +21,10 @@ from beyblade_data import (
 )
 
 STADIUM_RADIUS = 100.0
-COLLISION_RADIUS = 18.0      # bigger = more collisions
+COLLISION_RADIUS = 20.0      # bigger = more collisions
 EDGE_ZONE = 15.0
 TICKS_PER_SECOND = 10        # 100ms ticks for smooth animation
-MAX_BATTLE_SECONDS = 25      # battles last ~20-25 seconds
+MAX_BATTLE_SECONDS = 20      # battles last ~20-25 seconds
 MAX_BATTLE_TICKS = TICKS_PER_SECOND * MAX_BATTLE_SECONDS
 BURST_THRESHOLD = 100
 BASE_STAMINA = 100.0
@@ -67,7 +67,7 @@ class BeybladeInstance:
         self.blade_name = blade_data["name"]
         self.ratchet_name = ratchet_data["name"]
         self.bit_name = bit_data["name"]
-        self.max_stamina = BASE_STAMINA + (self.stamina_stat * 0.5)
+        self.max_stamina = BASE_STAMINA + (self.stamina_stat * 0.6)
         self.current_stamina = self.max_stamina
         self.burst_meter = 0.0
         self.is_burst = False
@@ -240,72 +240,90 @@ class StadiumState:
             if not bey.is_alive():
                 continue
 
-            # Speed decreases as stamina drops (THE key visual)
-            stamina_pct = bey.current_stamina / max(1, bey.max_stamina)
-            effective_speed = bey.speed * stamina_pct * 0.08  # scale factor
-
-            # ALL beyblades orbit - fundamental beyblade physics
-            # They circle around a focal point (shifts based on type)
-            bey.orbit_angle += bey.spin_direction * (0.15 + effective_speed * 0.02)
-
-            # Orbit radius varies by type and shrinks as stamina drops
-            base_orbit = 35.0
             other = self.bey2 if bey is self.bey1 else self.bey1
+            stamina_pct = bey.current_stamina / max(1, bey.max_stamina)
+            # Speed is HIGH at full stamina, drops as they spin down
+            raw_speed = bey.speed * 0.5  # big base multiplier
+            effective_speed = raw_speed * max(0.15, stamina_pct)
 
+            # Orbit angle spins FAST - these are tops ripping around a bowl
+            orbit_speed = 0.35 + effective_speed * 0.04
+            bey.orbit_angle += bey.spin_direction * orbit_speed
+
+            # Orbit parameters by type
             if bey.movement == "aggressive":
-                # Aggressive: wider, erratic orbit that sweeps toward opponent
-                cx = other.x * 0.3
-                cy = other.y * 0.3
-                orbit_r = base_orbit + 15 * math.sin(self.tick * 0.08)
+                # Chase the opponent - orbit center biased toward them
+                cx = other.x * 0.5
+                cy = other.y * 0.5
+                orbit_r = 50.0 + 20 * math.sin(self.tick * 0.12)
             elif bey.movement == "defensive":
-                # Defensive: tight orbit near center
                 cx, cy = 0, 0
-                orbit_r = base_orbit * 0.5
+                orbit_r = 30.0 + 10 * math.sin(self.tick * 0.1)
             elif bey.movement == "stamina":
-                # Stamina: medium orbit, very consistent
                 cx, cy = 0, 0
-                orbit_r = base_orbit * 0.7
-            else:  # erratic / balance
-                cx = random.uniform(-15, 15)
-                cy = random.uniform(-15, 15)
-                orbit_r = base_orbit + random.uniform(-10, 20)
+                orbit_r = 40.0 + 15 * math.sin(self.tick * 0.08)
+            else:
+                # Erratic/balance - random wobble
+                cx = 10 * math.sin(self.tick * 0.17 + bey.orbit_angle)
+                cy = 10 * math.cos(self.tick * 0.13 + bey.orbit_angle)
+                orbit_r = 45.0 + 20 * math.sin(self.tick * 0.15)
 
-            # Orbit shrinks as stamina drops (beyblade spirals inward as it dies)
-            orbit_r *= max(0.3, stamina_pct)
+            # Orbit shrinks as stamina dies - spiraling inward
+            orbit_r *= max(0.25, stamina_pct)
 
-            # Target position on orbit
+            # Target position
             target_x = cx + math.cos(bey.orbit_angle) * orbit_r
             target_y = cy + math.sin(bey.orbit_angle) * orbit_r
 
-            # Move toward target (smooth interpolation)
-            lerp = 0.15 + effective_speed * 0.01
+            # FAST interpolation - snappy movement, not sluggish
+            lerp = 0.4 + effective_speed * 0.02
+            lerp = min(lerp, 0.7)
             bey.x += (target_x - bey.x) * lerp
             bey.y += (target_y - bey.y) * lerp
 
-            # Apply velocity from collisions (momentum)
+            # Random jitter at high stamina - tops wobble and dart
+            if stamina_pct > 0.3:
+                jitter = effective_speed * 0.3
+                bey.x += random.uniform(-jitter, jitter)
+                bey.y += random.uniform(-jitter, jitter)
+
+            # Mutual attraction - stadium bowl funnels them together
+            # Stronger when far apart, creates guaranteed collisions
+            dx_opp = other.x - bey.x
+            dy_opp = other.y - bey.y
+            dist_opp = math.sqrt(dx_opp * dx_opp + dy_opp * dy_opp)
+            if dist_opp > 25:
+                # Pull toward opponent - stronger when further apart
+                attract = 1.5 + (dist_opp / STADIUM_RADIUS) * 2.5
+                bey.x += (dx_opp / dist_opp) * attract
+                bey.y += (dy_opp / dist_opp) * attract
+
+            # Apply collision/bounce velocity (momentum)
             bey.x += bey.vx
             bey.y += bey.vy
-            bey.vx *= 0.85  # friction
-            bey.vy *= 0.85
-            if abs(bey.vx) < 0.2:
+            bey.vx *= 0.80  # friction - velocity carries for several ticks
+            bey.vy *= 0.80
+            if abs(bey.vx) < 0.3:
                 bey.vx = 0
-            if abs(bey.vy) < 0.2:
+            if abs(bey.vy) < 0.3:
                 bey.vy = 0
 
-            # Keep in stadium (wall bounce)
+            # Wall bounce - VIOLENT
             dist = math.sqrt(bey.x ** 2 + bey.y ** 2)
             if dist > STADIUM_RADIUS - 5:
                 if dist > 0:
                     nx, ny = bey.x / dist, bey.y / dist
-                    bey.x = nx * (STADIUM_RADIUS - 6)
-                    bey.y = ny * (STADIUM_RADIUS - 6)
-                    # Reflect velocity
+                    bey.x = nx * (STADIUM_RADIUS - 7)
+                    bey.y = ny * (STADIUM_RADIUS - 7)
+                    # Reflect velocity off wall
                     dot = bey.vx * nx + bey.vy * ny
-                    bey.vx -= 2 * dot * nx
-                    bey.vy -= 2 * dot * ny
-                    # Bounce impulse away from wall
-                    bey.vx -= nx * effective_speed * 3
-                    bey.vy -= ny * effective_speed * 3
+                    bey.vx -= 2.2 * dot * nx
+                    bey.vy -= 2.2 * dot * ny
+                    # STRONG bounce impulse back toward center
+                    bounce = effective_speed * 6 + random.uniform(2, 8)
+                    bey.vx -= nx * bounce
+                    bey.vy -= ny * bounce
+                    bey.orbit_angle += random.uniform(-0.5, 0.5)
                     self.events.append({
                         "type": "wall_hit", "bey_name": bey.name,
                         "x": round(bey.x, 1), "y": round(bey.y, 1),
@@ -314,35 +332,46 @@ class StadiumState:
     def _check_collision(self):
         if not self.bey1.is_alive() or not self.bey2.is_alive():
             return
-        if self._collision_cooldown > 0:
+        # Cooldown: prevent double-collision on same pair
+        if hasattr(self, '_collision_cooldown') and self._collision_cooldown > 0:
+            self._collision_cooldown -= 1
             return
         dx = self.bey2.x - self.bey1.x
         dy = self.bey2.y - self.bey1.y
         dist = math.sqrt(dx * dx + dy * dy)
         if dist < COLLISION_RADIUS:
             self.total_collisions += 1
-            self._collision_cooldown = 4  # prevent re-triggering for 4 ticks
+            self._collision_cooldown = 3  # 3-tick cooldown
             collision_result = calculate_collision(self.bey1, self.bey2)
             self.events.append(collision_result)
-            if dist > 0:
+            if dist > 0.1:
                 nx = dx / dist
                 ny = dy / dist
-                # Weight affects who gets pushed more
-                w1 = self.bey1.weight
-                w2 = self.bey2.weight
-                total_w = max(1, w1 + w2)
-                # Violent knockback via velocity impulse
-                push = 25.0 + random.uniform(0, 15)
-                self.bey1.vx = -nx * push * (w2 / total_w)
-                self.bey1.vy = -ny * push * (w2 / total_w)
-                self.bey2.vx = nx * push * (w1 / total_w)
-                self.bey2.vy = ny * push * (w1 / total_w)
-                # Also separate them to prevent overlap
-                overlap = COLLISION_RADIUS - dist
-                self.bey1.x -= nx * overlap * 0.5
-                self.bey1.y -= ny * overlap * 0.5
-                self.bey2.x += nx * overlap * 0.5
-                self.bey2.y += ny * overlap * 0.5
+            else:
+                angle = random.uniform(0, 2 * math.pi)
+                nx = math.cos(angle)
+                ny = math.sin(angle)
+            # MASSIVE knockback - these things FLY apart
+            w1 = self.bey1.weight
+            w2 = self.bey2.weight
+            total_w = max(1, w1 + w2)
+            # Base push is huge, plus random spike
+            push = 40.0 + random.uniform(0, 25)
+            push1 = push * (w2 / total_w)  # lighter gets pushed more
+            push2 = push * (w1 / total_w)
+            # Separate them immediately
+            mid_x = (self.bey1.x + self.bey2.x) / 2
+            mid_y = (self.bey1.y + self.bey2.y) / 2
+            self.bey1.x = mid_x - nx * COLLISION_RADIUS * 0.6
+            self.bey1.y = mid_y - ny * COLLISION_RADIUS * 0.6
+            self.bey2.x = mid_x + nx * COLLISION_RADIUS * 0.6
+            self.bey2.y = mid_y + ny * COLLISION_RADIUS * 0.6
+            # Apply velocity impulse - they ROCKET apart
+            speed_factor = 1.5 + random.uniform(0, 1.0)
+            self.bey1.vx = -nx * push1 * speed_factor
+            self.bey1.vy = -ny * push1 * speed_factor
+            self.bey2.vx = nx * push2 * speed_factor
+            self.bey2.vy = ny * push2 * speed_factor
 
     def _check_edges(self):
         for i, bey in enumerate([self.bey1, self.bey2], 1):
@@ -448,14 +477,14 @@ def calculate_collision(bey1, bey2):
     v2 = random.uniform(0.85, 1.15)
     dmg_1to2 = atk1 * 0.15 * type_mult_1v2 * elem_mult_1v2 * spin_mult * height_mult_1
     dmg_1to2 *= weight_mult_1 * special_mult_1 * v1
-    dmg_1to2 = max(1, dmg_1to2 - bey2.get_effective_defense() * 0.05)
+    dmg_1to2 = max(0.5, dmg_1to2 * 0.7 - bey2.get_effective_defense() * 0.03)
     dmg_2to1 = atk2 * 0.15 * type_mult_2v1 * elem_mult_2v1 * spin_mult * height_mult_2
     dmg_2to1 *= weight_mult_2 * special_mult_2 * v2
-    dmg_2to1 = max(1, dmg_2to1 - bey1.get_effective_defense() * 0.05)
+    dmg_2to1 = max(0.5, dmg_2to1 * 0.7 - bey1.get_effective_defense() * 0.03)
     br1 = max(0.15, 1.0 - bey1.burst_resist / 150.0)
     br2 = max(0.15, 1.0 - bey2.burst_resist / 150.0)
-    burst_to_1 = dmg_2to1 * 2.0 * br1
-    burst_to_2 = dmg_1to2 * 2.0 * br2
+    burst_to_1 = dmg_2to1 * 1.2 * br1
+    burst_to_2 = dmg_1to2 * 1.2 * br2
     if special_used_1:
         sd = get_attack(bey1.special_move_id)
         if sd and sd.get("burst_power", 0) > 0:
