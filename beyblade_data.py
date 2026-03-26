@@ -65,18 +65,21 @@ def load_data():
         bits_list = json.load(f)
 
     with open(os.path.join(DATA_DIR, "attacks.json")) as f:
-        ATTACKS = json.load(f)
+        ATTACKS.clear()
+        ATTACKS.update(json.load(f))
 
     with open(os.path.join(DATA_DIR, "type_matchups.json")) as f:
-        TYPE_MATCHUPS = json.load(f)
+        TYPE_MATCHUPS.clear()
+        TYPE_MATCHUPS.update(json.load(f))
 
     with open(os.path.join(DATA_DIR, "element_chart.json")) as f:
-        ELEMENT_CHART = json.load(f)
+        ELEMENT_CHART.clear()
+        ELEMENT_CHART.update(json.load(f))
 
     stadiums_path = os.path.join(DATA_DIR, "stadiums.json")
     if os.path.exists(stadiums_path):
         with open(stadiums_path) as f:
-            STADIUMS = json.load(f)
+            STADIUMS[:] = json.load(f)
 
     # Index blades by id
     for blade in blades_list:
@@ -90,13 +93,13 @@ def load_data():
     for bit in bits_list:
         BITS[bit["id"]] = bit
 
-    # Build ordered lists for client
-    BLADES_LIST = sorted(blades_list, key=lambda b: (
+    # Build ordered lists for client (use slice assignment to preserve references)
+    BLADES_LIST[:] = sorted(blades_list, key=lambda b: (
         {"common": 0, "uncommon": 1, "rare": 2, "legendary": 3}.get(b["rarity"], 0),
         b["name"]
     ))
-    RATCHETS_LIST = sorted(ratchets_list, key=lambda r: r["name"])
-    BITS_LIST = sorted(bits_list, key=lambda b: b["name"])
+    RATCHETS_LIST[:] = sorted(ratchets_list, key=lambda r: r["name"])
+    BITS_LIST[:] = sorted(bits_list, key=lambda b: b["name"])
 
     # Validate starter kits reference real parts
     for kit_id, kit in STARTER_KITS.items():

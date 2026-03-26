@@ -198,12 +198,33 @@ async def handle_admin_api(request):
     resp_headers = HttpHeaders({"Content-Type": "application/json"})
 
     if path == "/api/admin/rooms":
-        body = json.dumps(room_manager.get_active_rooms()).encode()
+        raw_rooms = room_manager.get_active_rooms()
+        # Flatten for admin panel: players as comma-separated names, age as human string
+        for r in raw_rooms:
+            names = [p['username'] for p in r.get('players', []) if p]
+            r['players'] = ', '.join(names) if names else '-'
+            secs = r.get('age_seconds', 0)
+            if secs < 60:
+                r['age'] = f'{secs}s'
+            elif secs < 3600:
+                r['age'] = f'{secs // 60}m {secs % 60}s'
+            else:
+                r['age'] = f'{secs // 3600}h {(secs % 3600) // 60}m'
+        body = json.dumps(raw_rooms).encode()
         return HttpResponse(200, "OK", resp_headers, body)
 
     if path == "/api/admin/history":
         try:
             games = account_mgr.get_game_history(limit=50)
+            # Convert winner name to integer (1 or 2) for the admin panel
+            for g in games:
+                winner_name = g.get("winner", "")
+                if winner_name == g.get("player1_name"):
+                    g["winner"] = 1
+                elif winner_name == g.get("player2_name"):
+                    g["winner"] = 2
+                else:
+                    g["winner"] = 0  # unknown/draw
             body = json.dumps(games).encode()
             return HttpResponse(200, "OK", resp_headers, body)
         except Exception as e:
@@ -217,11 +238,35 @@ async def handle_admin_api(request):
             avg_dur = conn.execute(
                 "SELECT COALESCE(AVG(duration_sec), 0) FROM games"
             ).fetchone()[0]
+            total_players = conn.execute("SELECT COUNT(*) FROM players").fetchone()[0]
+            # Top beyblades: most-used blades across all recorded battles
+            top_rows = conn.execute(
+                """SELECT player1_bey AS bey FROM games WHERE player1_bey IS NOT NULL
+                   UNION ALL
+                   SELECT player2_bey AS bey FROM games WHERE player2_bey IS NOT NULL"""
+            ).fetchall()
+            blade_counts = {}
+            for row in top_rows:
+                try:
+                    bey = json.loads(row[0]) if isinstance(row[0], str) else row[0]
+                    name = None
+                    if isinstance(bey, dict):
+                        name = bey.get("blade_name") or bey.get("name") or bey.get("blade", {}).get("name")
+                    if name:
+                        blade_counts[name] = blade_counts.get(name, 0) + 1
+                except (json.JSONDecodeError, TypeError, AttributeError):
+                    pass
+            top_beyblades = sorted(
+                [{"name": k, "count": v} for k, v in blade_counts.items()],
+                key=lambda x: x["count"], reverse=True
+            )[:10]
             conn.close()
             body = json.dumps({
                 "total_games": total,
-                "avg_duration_sec": round(avg_dur, 1),
+                "avg_duration": round(avg_dur, 1),
                 "active_rooms": len(room_manager.rooms),
+                "total_players": total_players,
+                "top_beyblades": top_beyblades,
                 "active_encounters": len(active_encounters),
                 "active_tournaments": len(active_tournaments),
             }).encode()
@@ -232,13 +277,8 @@ async def handle_admin_api(request):
 
     if path == "/api/admin/bugs":
         try:
-            bugs_dir = APP_DIR / "bugs"
-            reports = []
-            if bugs_dir.exists():
-                for f in sorted(bugs_dir.glob("*.md"), reverse=True):
-                    content = f.read_text(encoding="utf-8")
-                    reports.append({"filename": f.name, "content": content})
-            body = json.dumps(reports[:100]).encode()
+            reports = account_mgr.get_bug_reports(limit=100)
+            body = json.dumps(reports).encode()
             return HttpResponse(200, "OK", resp_headers, body)
         except Exception as e:
             body = json.dumps({"error": str(e)}).encode()
@@ -807,8 +847,18 @@ async def handle_message(player, msg):
             return
         opponent, rarity = generate_free_battle(_avg_team_level(td))
         encounter = FreeBattle(player, team, opponent, rarity)
+        # Initialize positions so both beys are visible from the start
+        encounter.get_active().x = -45.0
+        encounter.get_active().y = 0.0
+        encounter.opponent.x = 45.0
+        encounter.opponent.y = 0.0
         active_encounters[player.id] = encounter
-        await player.send({"type": "free_battle_start", **encounter.serialize_state()})
+        active = encounter.get_active()
+        available = ['rush', 'guard', 'conserve']
+        if active.special_move_id and not active.special_used:
+            available.append(active.special_move_id)
+        await player.send({"type": "free_battle_start",
+                           "available_actions": available, **encounter.serialize_state()})
         return
 
     if msg_type == "battle_action":
@@ -821,7 +871,14 @@ async def handle_message(player, msg):
             del active_encounters[player.id]
             won = winner == "player"
             if getattr(encounter, 'is_training', False):
-                await player.send({"type": "battle_end", "events": events, "won": won, "is_training": True, **encounter.serialize_state()})
+                finish_type = "spin"
+                if encounter.opponent.is_burst or encounter.get_active().is_burst:
+                    finish_type = "burst"
+                elif encounter.opponent.is_ring_out or encounter.get_active().is_ring_out:
+                    finish_type = "xtreme"
+                await player.send({"type": "battle_end", "events": events, "won": won,
+                                   "is_training": True, "finish_type": finish_type,
+                                   **encounter.serialize_state()})
             elif getattr(encounter, 'is_tournament', False):
                 ts = encounter.tournament_state
                 oi = encounter.tournament_opponent
@@ -832,9 +889,21 @@ async def handle_message(player, msg):
                 await player.send({"type": "tournament_battle_end", "events": events, "won": won, "advanced": adv, "bey_points_earned": bp, **encounter.serialize_state()})
             else:
                 rewards = _award_journey_rewards(player, encounter, won, is_master=getattr(encounter, 'is_master', False), is_elite=getattr(encounter, 'is_elite', False), is_champion=getattr(encounter, 'is_champion', False), master_data=getattr(encounter, 'master_data', None))
-                await player.send({"type": "battle_end", "events": events, **rewards, **encounter.serialize_state()})
+                finish_type = "spin"
+                if encounter.opponent.is_burst or encounter.get_active().is_burst:
+                    finish_type = "burst"
+                elif encounter.opponent.is_ring_out or encounter.get_active().is_ring_out:
+                    finish_type = "xtreme"
+                await player.send({"type": "battle_end", "events": events,
+                                   "finish_type": finish_type, **rewards,
+                                   **encounter.serialize_state()})
         else:
-            await player.send({"type": "battle_update", "events": events, **encounter.serialize_state()})
+            active = encounter.get_active()
+            available = ['rush', 'guard', 'conserve']
+            if active.special_move_id and not active.special_used:
+                available.append(active.special_move_id)
+            await player.send({"type": "battle_update", "events": events,
+                               "available_actions": available, **encounter.serialize_state()})
         return
 
     if msg_type == "get_stadiums":
@@ -861,8 +930,18 @@ async def handle_message(player, msg):
         encounter = FreeBattle(player, team, opp_team[0], "master")
         encounter.is_master = True
         encounter.master_data = md
+        encounter.get_active().x = -45.0
+        encounter.get_active().y = 0.0
+        encounter.opponent.x = 45.0
+        encounter.opponent.y = 0.0
         active_encounters[player.id] = encounter
-        await player.send({"type": "master_battle_start", **encounter.serialize_state(), "master_name": md["name"]})
+        active = encounter.get_active()
+        available = ['rush', 'guard', 'conserve']
+        if active.special_move_id and not active.special_used:
+            available.append(active.special_move_id)
+        await player.send({"type": "master_battle_start",
+                           "available_actions": available,
+                           "master_name": md["name"], **encounter.serialize_state()})
         return
 
     if msg_type == "get_elite":
@@ -887,8 +966,17 @@ async def handle_message(player, msg):
         encounter = FreeBattle(player, team, opp_team[0], "elite")
         encounter.is_elite = True
         encounter.master_data = ed
+        encounter.get_active().x = -45.0
+        encounter.get_active().y = 0.0
+        encounter.opponent.x = 45.0
+        encounter.opponent.y = 0.0
         active_encounters[player.id] = encounter
-        await player.send({"type": "elite_battle_start", **encounter.serialize_state()})
+        active = encounter.get_active()
+        available = ['rush', 'guard', 'conserve']
+        if active.special_move_id and not active.special_used:
+            available.append(active.special_move_id)
+        await player.send({"type": "elite_battle_start",
+                           "available_actions": available, **encounter.serialize_state()})
         return
 
     if msg_type == "get_champion":
@@ -912,8 +1000,17 @@ async def handle_message(player, msg):
         encounter = FreeBattle(player, team, opp_team[0], "champion")
         encounter.is_champion = True
         encounter.master_data = champ
+        encounter.get_active().x = -45.0
+        encounter.get_active().y = 0.0
+        encounter.opponent.x = 45.0
+        encounter.opponent.y = 0.0
         active_encounters[player.id] = encounter
-        await player.send({"type": "champion_battle_start", **encounter.serialize_state()})
+        active = encounter.get_active()
+        available = ['rush', 'guard', 'conserve']
+        if active.special_move_id and not active.special_used:
+            available.append(active.special_move_id)
+        await player.send({"type": "champion_battle_start",
+                           "available_actions": available, **encounter.serialize_state()})
         return
 
     if msg_type == "create_room":
@@ -1026,8 +1123,19 @@ async def handle_message(player, msg):
         encounter.is_tournament = True
         encounter.tournament_state = ts
         encounter.tournament_opponent = oi
+        encounter.get_active().x = -45.0
+        encounter.get_active().y = 0.0
+        encounter.opponent.x = 45.0
+        encounter.opponent.y = 0.0
         active_encounters[player.id] = encounter
-        await player.send({"type": "tournament_battle_start", **encounter.serialize_state(), "opponent_name": oi["name"], "round_name": oi["round_name"]})
+        active = encounter.get_active()
+        available = ['rush', 'guard', 'conserve']
+        if active.special_move_id and not active.special_used:
+            available.append(active.special_move_id)
+        await player.send({"type": "tournament_battle_start",
+                           "available_actions": available,
+                           "opponent_name": oi["name"], "round_name": oi["round_name"],
+                           **encounter.serialize_state()})
         return
 
     if msg_type == "tournament_continue":
@@ -1064,9 +1172,18 @@ async def handle_message(player, msg):
         opponent = generate_opponent_beyblade(avg_level=int(_avg_team_level(td)))
         encounter = FreeBattle(player, team, opponent, "training")
         encounter.is_training = True
+        encounter.get_active().x = -45.0
+        encounter.get_active().y = 0.0
+        encounter.opponent.x = 45.0
+        encounter.opponent.y = 0.0
         active_encounters[player.id] = encounter
         state = encounter.serialize_state()
         state["is_training"] = True
+        active = encounter.get_active()
+        available = ['rush', 'guard', 'conserve']
+        if active.special_move_id and not active.special_used:
+            available.append(active.special_move_id)
+        state["available_actions"] = available
         await player.send({"type": "training_start", **state})
         return
 
@@ -1076,16 +1193,22 @@ async def handle_message(player, msg):
         desc = str(data.get("description", "")).strip()[:2000]
         if desc:
             try:
-                bugs_dir = APP_DIR / "bugs"
-                bugs_dir.mkdir(exist_ok=True)
-                from datetime import datetime, timezone
-                dt = datetime.fromtimestamp(int(time.time()), tz=timezone.utc)
-                safe = "".join(c if c.isalnum() else "_" for c in (player.username or "unknown"))
-                fn = f"{dt.strftime('%Y-%m-%d_%H%M%S')}_{safe}.md"
-                (bugs_dir / fn).write_text(f"# Bug Report\n\n{desc}\n", encoding="utf-8")
+                account_mgr.submit_bug_report(
+                    player.account_id,
+                    player.username or "unknown",
+                    desc,
+                    data.get("game_state"),
+                )
                 await player.send({"type": "bug_report_submitted", "message": "Bug report submitted!"})
             except Exception as e:
                 print(f"[bug] Error: {e}")
+        return
+
+    if msg_type == "forfeit_battle":
+        encounter = active_encounters.get(player.id)
+        if encounter:
+            del active_encounters[player.id]
+        await player.send({"type": "battle_forfeited"})
         return
 
     if msg_type == "ping":

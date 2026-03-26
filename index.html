@@ -574,6 +574,18 @@ input.invalid { border-color: var(--danger); }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
+/* === Starter Chosen Pulse === */
+@keyframes starterChosen {
+    0% { box-shadow: 0 0 15px rgba(0,212,255,0.3); }
+    50% { box-shadow: 0 0 35px rgba(0,212,255,0.7), 0 0 60px rgba(0,212,255,0.3); border-color: #00d4ff; }
+    100% { box-shadow: 0 0 15px rgba(0,212,255,0.3); }
+}
+.starter-card.chosen {
+    border-color: var(--accent); background: rgba(0,212,255,0.15);
+    animation: starterChosen 0.5s ease;
+    pointer-events: none;
+}
+
 /* === Utility === */
 .hidden { display: none !important; }
 .flex-center { display: flex; align-items: center; justify-content: center; }
@@ -627,7 +639,6 @@ input.invalid { border-color: var(--danger); }
     <div class="starter-title">Choose Your First Beyblade!</div>
     <div class="starter-subtitle">This kit includes a Blade, Ratchet, and Bit</div>
     <div class="starter-grid" id="starter-grid"></div>
-    <button class="btn btn-primary" id="starter-confirm-btn" onclick="confirmStarter()" disabled style="width:280px;margin-top:10px">SELECT</button>
   </div>
 
   <!-- 3. HUB SCREEN -->
@@ -736,6 +747,9 @@ input.invalid { border-color: var(--danger); }
         <button class="action-btn special" id="action-special-btn" onclick="sendAction('special')" disabled>SPECIAL</button>
       </div>
       <div class="waiting-text" id="battle-waiting" style="display:none">Watching the stadium...</div>
+      <div style="padding:8px;text-align:center">
+        <button class="btn btn-danger" id="forfeit-btn" onclick="forfeitBattle()" style="font-size:var(--fs-xs);padding:8px 16px;min-height:36px">FORFEIT</button>
+      </div>
     </div>
   </div>
 
@@ -1345,7 +1359,14 @@ function handleMessage(msg) {
         showToast('Tournament forfeited.');
         goHome();
         break;
+    case 'battle_forfeited':
+        showToast('Battle forfeited.');
+        goHome();
+        break;
     // Battle end (journey/free/master/training)
+    case 'battle_update':
+        handleBattleUpdate(msg);
+        break;
     case 'battle_end':
         showResult(msg);
         break;
@@ -1400,8 +1421,15 @@ function setupPinInputs(prefix, count) {
         el.value = '';
         (function(idx, pfx) {
             el.oninput = function() {
-                if (this.value.length === 1 && idx < count) {
-                    document.getElementById(pfx + (idx + 1)).focus();
+                if (this.value.length === 1) {
+                    if (idx < count) {
+                        document.getElementById(pfx + (idx + 1)).focus();
+                    }
+                    if (idx === count) {
+                        // Auto-submit on 4th digit
+                        if (pfx === 'pin-s') submitPinSetup();
+                        else if (pfx === 'pin-v') submitPinVerify();
+                    }
                 }
             };
             el.onkeydown = function(e) {
@@ -1477,21 +1505,18 @@ function showStarterScreen(msg) {
         html += '</div>';
     }
     grid.innerHTML = html;
-    document.getElementById('starter-confirm-btn').disabled = true;
+
 }
 
 function selectStarter(el, key) {
+    if (S.selectedStarter) return; // prevent double-click
     var cards = document.querySelectorAll('.starter-card');
     for (var i = 0; i < cards.length; i++) cards[i].classList.remove('selected');
-    el.classList.add('selected');
+    el.classList.add('chosen');
     S.selectedStarter = key;
-    document.getElementById('starter-confirm-btn').disabled = false;
-    document.getElementById('starter-confirm-btn').textContent = 'CHOOSE ' + el.querySelector('.starter-name').textContent.toUpperCase();
-}
-
-function confirmStarter() {
-    if (!S.selectedStarter) return;
-    send({ type: 'choose_starter', kit_id: S.selectedStarter });
+    setTimeout(function() {
+        send({ type: 'choose_starter', kit_id: key });
+    }, 500);
 }
 
 /* === Hub === */
@@ -1797,34 +1822,45 @@ function showMasterDefeat(msg) {
 /* === Battle === */
 function startBattle(msg) {
     showScreen('stadium');
-    S.currentBey = msg.your_beyblade;
-    S.opponentBey = msg.opponent_beyblade;
+    var myBey = msg.your_beyblade || {};
+    var oppBey = msg.opponent_beyblade || msg.opponent || {};
+    S.currentBey = myBey;
+    S.opponentBey = oppBey;
     S.actionSent = false;
+    S.battleOver = false;
+    if (msg.available_actions) S.roomCode = null; // Clear PvP room code for journey battles
+    S.availableActions = msg.available_actions || ['rush', 'guard', 'conserve'];
 
     // Set HUD
-    updateHUD(msg.your_beyblade, msg.opponent_beyblade);
+    updateHUD(myBey, oppBey);
 
     // Place beyblades in ring
     var ring = document.getElementById('stadium-ring');
     var p1 = document.getElementById('bey-p1');
     var p2 = document.getElementById('bey-p2');
     p1.innerHTML = generateBeybladeSVG(
-        (msg.your_beyblade || {}).element || 'fire',
-        (msg.your_beyblade || {}).bey_type || 'attack', 40
+        myBey.element || 'fire', myBey.bey_type || 'attack', 40
     );
     p2.innerHTML = generateBeybladeSVG(
-        (msg.opponent_beyblade || {}).element || 'fire',
-        (msg.opponent_beyblade || {}).bey_type || 'attack', 40
+        oppBey.element || 'fire', oppBey.bey_type || 'attack', 40
     );
     p1.classList.add('bey-spinning');
     p2.classList.add('bey-spinning');
 
     // Initial position
-    positionBey(p1, msg.your_beyblade || {}, ring);
-    positionBey(p2, msg.opponent_beyblade || {}, ring);
+    positionBey(p1, myBey, ring);
+    positionBey(p2, oppBey, ring);
 
     setBattleText('3... 2... 1... LET IT RIP!');
     hideActionPanel();
+
+    // After countdown, show action buttons for first turn
+    setTimeout(function() {
+        if (!S.battleOver && S.currentScreen === 'stadium') {
+            setBattleText('Choose your action!');
+            showActionWindow({ available_actions: S.availableActions, time_limit: 5 });
+        }
+    }, 2000);
 }
 
 function positionBey(el, bey, ring) {
@@ -1990,7 +2026,15 @@ function showActionWindow(msg) {
         timerEl.textContent = Math.max(0, timeLeft);
         if (timeLeft <= 0) {
             clearInterval(S.actionTimerInterval);
-            if (!S.actionSent) hideActionPanel();
+            if (!S.actionSent) {
+                // Auto-pick a random action on timeout
+                if (!S.roomCode) {
+                    var autoActions = ['rush', 'guard', 'conserve'];
+                    var autoAction = autoActions[Math.floor(Math.random() * autoActions.length)];
+                    sendAction(autoAction);
+                }
+                hideActionPanel();
+            }
         }
     }, 1000);
 }
@@ -2013,6 +2057,64 @@ function hideActionPanel() {
         clearInterval(S.actionTimerInterval);
         S.actionTimerInterval = null;
     }
+}
+
+function handleBattleUpdate(msg) {
+    // Process tick events and update UI
+    var myBey = msg.your_beyblade || {};
+    var oppBey = msg.opponent_beyblade || msg.opponent || {};
+    S.currentBey = myBey;
+    S.opponentBey = oppBey;
+
+    // Update positions
+    var ring = document.getElementById('stadium-ring');
+    positionBey(document.getElementById('bey-p1'), myBey, ring);
+    positionBey(document.getElementById('bey-p2'), oppBey, ring);
+
+    // Update spin speed class
+    updateSpinClass(document.getElementById('bey-p1'), myBey);
+    updateSpinClass(document.getElementById('bey-p2'), oppBey);
+
+    // Update HUD
+    updateHUD(myBey, oppBey);
+
+    // Process events
+    var events = msg.events || [];
+    var lastText = null;
+    for (var i = 0; i < events.length; i++) {
+        var evt = events[i];
+        if (evt.type === 'collision') {
+            showCollision(evt, ring);
+            lastText = evt.text || 'CLASH!';
+        } else if (evt.type === 'ring_out') {
+            lastText = (evt.bey_name || 'A bey') + ' was knocked out!';
+        } else if (evt.type === 'burst') {
+            showBurstEffect(evt, ring);
+            lastText = (evt.bey_name || 'A bey') + ' BURST!';
+        } else if (evt.type === 'spin_stop') {
+            lastText = (evt.bey_name || 'A bey') + ' stopped spinning!';
+        } else if (evt.type === 'action_chosen') {
+            lastText = (evt.bey_name || '???') + ' used ' + (evt.action || '').toUpperCase() + '!';
+        } else if (evt.type === 'special_activated') {
+            lastText = (evt.bey_name || '???') + ' used SPECIAL MOVE!';
+        }
+    }
+    if (lastText) setBattleText(lastText);
+
+    // Store available actions and show action window for next turn
+    S.availableActions = msg.available_actions || ['rush', 'guard', 'conserve'];
+    setTimeout(function() {
+        if (!S.battleOver && S.currentScreen === 'stadium') {
+            showActionWindow({ available_actions: S.availableActions, time_limit: 5 });
+        }
+    }, 800);
+}
+
+function forfeitBattle() {
+    S.battleOver = true;
+    send({ type: 'forfeit_battle' });
+    showToast('Battle forfeited.');
+    goHome();
 }
 
 /* === Launch Screen === */
@@ -2095,25 +2197,48 @@ function submitLaunch() {
 
 /* === Game Over / Result === */
 function showResult(msg) {
+    S.battleOver = true;
     var el = document.getElementById('result-title');
-    el.textContent = msg.winner ? 'YOU WIN!' : 'YOU LOSE';
-    el.className = 'result-title ' + (msg.winner ? 'win' : 'lose');
+    // Support both PvP (msg.winner) and journey (msg.won) formats
+    var didWin = msg.won !== undefined ? msg.won : !!msg.winner;
+    el.textContent = didWin ? 'YOU WIN!' : 'YOU LOSE';
+    el.className = 'result-title ' + (didWin ? 'win' : 'lose');
 
+    // Finish type - from summary (PvP) or direct field (journey)
     var summary = msg.summary || {};
     var finishNames = { burst: 'BURST FINISH (3 pts)', xtreme: 'XTREME FINISH (2 pts)', spin: 'SPIN FINISH (1 pt)', forfeit: 'FORFEIT (3 pts)' };
-    document.getElementById('result-finish').textContent = finishNames[summary.finish_type] || summary.finish_type || '';
+    var finishType = msg.finish_type || summary.finish_type || '';
+    document.getElementById('result-finish').textContent = finishNames[finishType] || finishType || '';
 
-    var details = (summary.winner_name || '???') + ' defeated ' + (summary.loser_name || '???');
-    details += '\nScore: ' + (summary.score || [0,0]).join(' - ');
-    details += '\nCollisions: ' + (summary.collisions || 0);
+    // Details
+    var details = '';
+    if (summary.winner_name) {
+        details = summary.winner_name + ' defeated ' + (summary.loser_name || '???');
+        details += '\nScore: ' + (summary.score || [0,0]).join(' - ');
+        details += '\nCollisions: ' + (summary.collisions || 0);
+    } else {
+        var myName = (S.currentBey || {}).name || 'You';
+        var oppName = (S.opponentBey || {}).name || 'Opponent';
+        details = didWin ? myName + ' wins!' : oppName + ' wins!';
+    }
     document.getElementById('result-details').textContent = details;
 
+    // Rewards
     var rewards = '';
-    if (msg.winner && msg.currency_gained) {
-        rewards = '+' + msg.currency_gained + ' BP';
+    var bpEarned = msg.bey_points_earned || msg.currency_gained || 0;
+    if (didWin && bpEarned) {
+        rewards = '+' + bpEarned + ' BP';
     }
-    if (msg.part_gained) {
-        rewards += (rewards ? ' | ' : '') + 'New part: ' + msg.part_gained;
+    var partDrop = msg.part_drop || msg.part_gained;
+    if (partDrop) {
+        var partName = typeof partDrop === 'object' ? (partDrop.name || partDrop.part_id || 'Unknown') : partDrop;
+        rewards += (rewards ? ' | ' : '') + 'New part: ' + partName;
+    }
+    if (msg.xp_result && msg.xp_result.xp_gained) {
+        rewards += (rewards ? ' | ' : '') + '+' + msg.xp_result.xp_gained + ' XP';
+    }
+    if (msg.rank_up) {
+        rewards += ' | RANK UP!';
     }
     document.getElementById('result-rewards').textContent = rewards;
     showScreen('result');

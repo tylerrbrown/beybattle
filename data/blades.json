@@ -36,19 +36,19 @@
   {
     "id": "wizard_arrow",
     "name": "Wizard Arrow",
-    "type": "attack",
+    "type": "stamina",
     "element": "wind",
     "base_stats": {
-      "attack": 75,
-      "defense": 22,
-      "stamina": 32,
-      "speed": 82,
-      "burst_resist": 20
+      "attack": 32,
+      "defense": 40,
+      "stamina": 82,
+      "speed": 55,
+      "burst_resist": 48
     },
     "special_move": "gale_cutter",
     "weight": 24,
     "rarity": "uncommon",
-    "description": "Precision-guided strikes powered by ancient wind magic. Speed is its doctrine."
+    "description": "A patient blade guided by ancient wind magic. Outlasts opponents with superior endurance."
   },
   {
     "id": "knight_shield",

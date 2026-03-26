@@ -102,7 +102,7 @@ async function refresh() {
         htb.innerHTML = (history || []).map(g => `<tr>
             <td>${g.room_code || '-'}</td>
             <td>${g.player1_name}</td><td>${g.player2_name}</td>
-            <td>${g.winner === 1 ? g.player1_name : g.player2_name}</td>
+            <td>${g.winner === 1 ? g.player1_name : g.winner === 2 ? g.player2_name : '?'}</td>
             <td>${finishType(g.finish_type)}</td>
             <td>${formatDuration(g.duration_sec)}</td>
             <td>${formatDate(g.finished_at)}</td>

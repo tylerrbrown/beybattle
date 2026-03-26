@@ -140,6 +140,12 @@ def get_stadium_masters(stadium_id="hometown"):
 
 def get_master(master_id, stadium_id="hometown"):
     """Get a single master by numeric id within a stadium."""
+    # Coerce to int for comparison since JSON data uses int IDs but
+    # WebSocket messages may send string IDs
+    try:
+        master_id = int(master_id)
+    except (TypeError, ValueError):
+        pass
     for m in get_stadium_masters(stadium_id):
         if m["id"] == master_id:
             return m
@@ -408,8 +414,10 @@ class FreeBattle:
     def serialize_state(self):
         """Get current state for the client."""
         active = self.get_active()
+        opp = self.opponent.to_dict()
         return {
-            "opponent": self.opponent.to_dict(),
+            "opponent": opp,
+            "opponent_beyblade": opp,
             "opponent_rarity": self.opponent_rarity,
             "your_beyblade": active.to_dict(),
             "your_team": [bey.to_dict() for bey in self.team],
