@@ -525,50 +525,90 @@ async def handle_message(player, msg):
 
     msg_type = data.get("type", "")
 
-    if msg_type == "register":
-        username = str(data.get("username", "")).strip()
-        upin = data.get("user_pin")
-        if upin is not None:
-            upin = str(upin).strip()
-            if len(upin) != 4 or not upin.isdigit():
-                await player.send({"type": "register_error", "message": "PIN must be 4 digits."})
-                return
-        result, error = account_mgr.register(username, user_pin=upin)
-        if error:
-            await player.send({"type": "register_error", "message": error})
-        else:
-            player.username = result["username"]
-            player.account_id = result["id"]
-            await player.send({"type": "register_ok", "profile": result})
-            await player.send({"type": "game_data", **get_client_data()})
-        return
-
     if msg_type == "login":
         tk = data.get("token")
         username = data.get("username")
         upin = data.get("user_pin")
+
+        # Case 1: Auto-login via saved token
         if tk:
             profile = account_mgr.login_with_token(tk)
             if profile:
                 player.username = profile["username"]
                 player.account_id = profile["id"]
                 full = account_mgr.get_profile(profile["id"])
-                await player.send({"type": "login_ok", "profile": full})
+                needs_starter = not full.get("team") and not full.get("starter_blade_id")
+                resp = {"type": "auto_login_success", "username": profile["username"],
+                        "token": profile["token_"], "needs_starter": needs_starter}
+                resp.update(full)
+                await player.send(resp)
                 await player.send({"type": "game_data", **get_client_data()})
             else:
-                await player.send({"type": "login_error", "message": "Invalid token."})
-        elif username and upin:
-            profile = account_mgr.login_with_username(username.strip(), upin)
+                await player.send({"type": "auto_login_failed"})
+            return
+
+        # Case 2: Username + PIN verification (returning user)
+        if username and upin:
+            profile = account_mgr.login_with_username(username.strip(), str(upin).strip())
             if profile:
                 player.username = profile["username"]
                 player.account_id = profile["id"]
                 full = account_mgr.get_profile(profile["id"])
-                await player.send({"type": "login_ok", "profile": full})
+                needs_starter = not full.get("team") and not full.get("starter_blade_id")
+                resp = {"type": "login_success", "username": profile["username"],
+                        "token": profile["token_"], "needs_starter": needs_starter}
+                resp.update(full)
+                await player.send(resp)
                 await player.send({"type": "game_data", **get_client_data()})
             else:
-                await player.send({"type": "login_error", "message": "Invalid username or PIN."})
-        else:
-            await player.send({"type": "login_error", "message": "Provide token or username+PIN."})
+                await player.send({"type": "error", "message": "Wrong code. Try again."})
+            return
+
+        # Case 3: Just username (first contact - check if new or existing)
+        if username:
+            username = username.strip()
+            row = None
+            try:
+                cur = account_mgr.conn.execute(
+                    "SELECT id, username, token_, user_pin FROM players WHERE username = ? COLLATE NOCASE",
+                    (username,))
+                row = cur.fetchone()
+            except Exception:
+                pass
+
+            if row:
+                # Existing user
+                if row[3]:
+                    # Has PIN - ask for it
+                    await player.send({"type": "pin_required", "username": row[1]})
+                else:
+                    # No PIN - log in directly
+                    player.username = row[1]
+                    player.account_id = row[0]
+                    full = account_mgr.get_profile(row[0])
+                    needs_starter = not full.get("team") and not full.get("starter_blade_id")
+                    resp = {"type": "login_success", "username": row[1],
+                            "token": row[2], "needs_starter": needs_starter}
+                    resp.update(full)
+                    await player.send(resp)
+                    await player.send({"type": "game_data", **get_client_data()})
+            else:
+                # New user - register
+                result, error = account_mgr.register(username)
+                if error:
+                    await player.send({"type": "error", "message": error})
+                else:
+                    player.username = result["username"]
+                    player.account_id = result["id"]
+                    full = account_mgr.get_profile(result["id"])
+                    resp = {"type": "login_success", "username": result["username"],
+                            "token": result["token_"], "needs_starter": True}
+                    resp.update(full)
+                    await player.send(resp)
+                    await player.send({"type": "game_data", **get_client_data()})
+            return
+
+        await player.send({"type": "error", "message": "Enter a username."})
         return
 
     if msg_type == "choose_starter":
@@ -576,7 +616,12 @@ async def handle_message(player, msg):
             await player.send({"type": "error", "message": "Not logged in."})
             return
         if account_mgr.choose_starter(player.account_id, data.get("kit_id")):
-            await player.send({"type": "starter_chosen", "profile": account_mgr.get_profile(player.account_id)})
+            full = account_mgr.get_profile(player.account_id)
+            resp = {"type": "starter_chosen"}
+            resp.update(full)
+            if data.get("kit_id") in STARTER_KITS:
+                resp["starter_name"] = STARTER_KITS[data["kit_id"]]["name"]
+            await player.send(resp)
         else:
             await player.send({"type": "error", "message": "Invalid starter kit."})
         return
@@ -585,7 +630,7 @@ async def handle_message(player, msg):
         if not getattr(player, 'account_id', None):
             await player.send({"type": "error", "message": "Not logged in."})
             return
-        await player.send({"type": "profile", "profile": account_mgr.get_profile(player.account_id)})
+        await player.send({"type": "profile_data", **account_mgr.get_profile(player.account_id)})
         return
 
     if msg_type == "get_team":
