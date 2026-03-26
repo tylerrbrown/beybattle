@@ -17,7 +17,7 @@ from beyblade_data import (
 )
 
 STADIUM_RADIUS = 100.0
-COLLISION_RADIUS = 12.0
+COLLISION_RADIUS = 15.0
 EDGE_ZONE = 15.0
 TICKS_PER_SECOND = 2
 ACTION_WINDOW_TICKS = 10
@@ -65,6 +65,8 @@ class BeybladeInstance:
         self.is_stopped = False
         self.x = 0.0
         self.y = 0.0
+        self.vx = 0.0
+        self.vy = 0.0
         self.angle = 0.0
         self.spin_direction = 1
         self.launch_power_bonus = 0.0
@@ -151,6 +153,7 @@ class BeybladeInstance:
             "current_stamina": round(self.current_stamina, 1),
             "burst_meter": round(self.burst_meter, 1),
             "x": round(self.x, 1), "y": round(self.y, 1),
+            "vx": round(self.vx, 1), "vy": round(self.vy, 1),
             "spin_direction": self.spin_direction,
             "is_burst": self.is_burst, "is_ring_out": self.is_ring_out,
             "is_stopped": self.is_stopped,
@@ -222,43 +225,91 @@ class StadiumState:
             if not bey.is_alive():
                 continue
             speed = bey.get_effective_speed()
-            move_dist = speed * 0.15
+            move_dist = speed * 0.4
+
+            # Apply existing velocity (momentum from collisions/bounces)
+            bey.x += bey.vx
+            bey.y += bey.vy
+            # Dampen velocity each tick (friction)
+            bey.vx *= 0.82
+            bey.vy *= 0.82
+            if abs(bey.vx) < 0.3:
+                bey.vx = 0
+            if abs(bey.vy) < 0.3:
+                bey.vy = 0
+
             if bey.movement == "aggressive":
                 other = self.bey2 if bey is self.bey1 else self.bey1
                 dx = other.x - bey.x
                 dy = other.y - bey.y
                 dist = math.sqrt(dx * dx + dy * dy)
                 if dist > 0:
-                    bey.x += (dx / dist) * move_dist * 0.7
-                    bey.y += (dy / dist) * move_dist * 0.7
-                bey.angle += bey.spin_direction * 0.3
-                bey.x += math.cos(bey.angle) * move_dist * 0.3
-                bey.y += math.sin(bey.angle) * move_dist * 0.3
+                    bey.x += (dx / dist) * move_dist * 0.8
+                    bey.y += (dy / dist) * move_dist * 0.8
+                bey.angle += bey.spin_direction * 0.4
+                bey.x += math.cos(bey.angle) * move_dist * 0.2
+                bey.y += math.sin(bey.angle) * move_dist * 0.2
             elif bey.movement == "defensive":
-                bey.x -= bey.x * 0.05
-                bey.y -= bey.y * 0.05
-                bey.angle += bey.spin_direction * 0.5
-                bey.x += math.cos(bey.angle) * move_dist * 0.3
-                bey.y += math.sin(bey.angle) * move_dist * 0.3
+                # Defensive still orbits center but faster, occasionally drifts out
+                bey.angle += bey.spin_direction * 0.6
+                orbit_r = 20.0 + 10.0 * math.sin(self.tick * 0.15)
+                target_x = math.cos(bey.angle) * orbit_r
+                target_y = math.sin(bey.angle) * orbit_r
+                bey.x += (target_x - bey.x) * 0.15
+                bey.y += (target_y - bey.y) * 0.15
+                bey.x += math.cos(bey.angle) * move_dist * 0.25
+                bey.y += math.sin(bey.angle) * move_dist * 0.25
             elif bey.movement == "stamina":
-                bey.angle += bey.spin_direction * 0.2
-                radius = 30.0 + 15.0 * math.sin(self.tick * 0.1)
+                bey.angle += bey.spin_direction * 0.35
+                radius = 35.0 + 20.0 * math.sin(self.tick * 0.12)
                 target_x = math.cos(bey.angle) * radius
                 target_y = math.sin(bey.angle) * radius
-                bey.x += (target_x - bey.x) * 0.1
-                bey.y += (target_y - bey.y) * 0.1
+                bey.x += (target_x - bey.x) * 0.15
+                bey.y += (target_y - bey.y) * 0.15
+                # Occasionally dart toward opponent
+                if random.random() < 0.15:
+                    other = self.bey2 if bey is self.bey1 else self.bey1
+                    dx = other.x - bey.x
+                    dy = other.y - bey.y
+                    d = math.sqrt(dx * dx + dy * dy)
+                    if d > 0:
+                        bey.x += (dx / d) * move_dist * 0.3
+                        bey.y += (dy / d) * move_dist * 0.3
             elif bey.movement == "erratic":
-                if random.random() < 0.3:
-                    bey.angle += random.uniform(-1.0, 1.0)
-                bey.x += math.cos(bey.angle) * move_dist
-                bey.y += math.sin(bey.angle) * move_dist
+                if random.random() < 0.35:
+                    bey.angle += random.uniform(-1.5, 1.5)
+                bey.x += math.cos(bey.angle) * move_dist * 1.1
+                bey.y += math.sin(bey.angle) * move_dist * 1.1
+
+            # Center gravity: bowl-shaped stadium pulls toward center
+            dist_from_center = math.sqrt(bey.x * bey.x + bey.y * bey.y)
+            if dist_from_center > 5:
+                gravity_strength = 0.008 + (dist_from_center / STADIUM_RADIUS) * 0.012
+                bey.x -= (bey.x / dist_from_center) * gravity_strength * move_dist
+                bey.y -= (bey.y / dist_from_center) * gravity_strength * move_dist
+
+            # Wall bounce: reflect angle when hitting edge
             dist_from_center = math.sqrt(bey.x * bey.x + bey.y * bey.y)
             if dist_from_center > STADIUM_RADIUS - 5:
                 norm_x = bey.x / dist_from_center
                 norm_y = bey.y / dist_from_center
+                # Place back inside
                 bey.x = norm_x * (STADIUM_RADIUS - 6)
                 bey.y = norm_y * (STADIUM_RADIUS - 6)
-                bey.angle = math.atan2(-norm_y, -norm_x) + random.uniform(-0.5, 0.5)
+                # Reflect velocity off the wall
+                dot = bey.vx * norm_x + bey.vy * norm_y
+                bey.vx -= 2 * dot * norm_x
+                bey.vy -= 2 * dot * norm_y
+                # Add bounce impulse away from wall
+                bounce_force = move_dist * 0.6 + random.uniform(0, move_dist * 0.3)
+                bey.vx -= norm_x * bounce_force
+                bey.vy -= norm_y * bounce_force
+                # Reflect movement angle
+                bey.angle = math.atan2(-norm_y, -norm_x) + random.uniform(-0.3, 0.3)
+                self.events.append({
+                    "type": "wall_hit", "bey_name": bey.name,
+                    "x": round(bey.x, 1), "y": round(bey.y, 1),
+                })
 
     def _check_collision(self):
         if not self.bey1.is_alive() or not self.bey2.is_alive():
@@ -271,13 +322,29 @@ class StadiumState:
             collision_result = calculate_collision(self.bey1, self.bey2)
             self.events.append(collision_result)
             if dist > 0:
-                push = COLLISION_RADIUS * 0.8
+                # Dramatic knockback: 2.5x the collision radius
+                push = COLLISION_RADIUS * 3.0
                 nx = dx / dist
                 ny = dy / dist
-                self.bey1.x -= nx * push * 0.5
-                self.bey1.y -= ny * push * 0.5
-                self.bey2.x += nx * push * 0.5
-                self.bey2.y += ny * push * 0.5
+                # Weight affects who gets pushed more
+                w1 = self.bey1.weight
+                w2 = self.bey2.weight
+                total_w = max(1, w1 + w2)
+                push1_ratio = w2 / total_w  # lighter bey pushed more
+                push2_ratio = w1 / total_w
+                push1 = push * push1_ratio
+                push2 = push * push2_ratio
+                # Apply position push
+                self.bey1.x -= nx * push1
+                self.bey1.y -= ny * push1
+                self.bey2.x += nx * push2
+                self.bey2.y += ny * push2
+                # Apply velocity for momentum carry
+                speed_factor = 1.0 + random.uniform(0, 0.5)
+                self.bey1.vx = -nx * push1 * 1.2 * speed_factor
+                self.bey1.vy = -ny * push1 * 1.2 * speed_factor
+                self.bey2.vx = nx * push2 * 1.2 * speed_factor
+                self.bey2.vy = ny * push2 * 1.2 * speed_factor
 
     def _check_edges(self):
         for i, bey in enumerate([self.bey1, self.bey2], 1):
@@ -426,6 +493,7 @@ def calculate_collision(bey1, bey2):
         "special_used_1": special_used_1, "special_used_2": special_used_2,
         "collision_x": round((bey1.x + bey2.x) / 2, 1),
         "collision_y": round((bey1.y + bey2.y) / 2, 1),
+        "total_damage": round(dmg_1to2 + dmg_2to1, 1),
     }
 
 

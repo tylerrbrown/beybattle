@@ -289,14 +289,12 @@ input.invalid { border-color: var(--danger); }
     box-shadow: 0 0 10px var(--accent);
 }
 .bey-in-stadium {
-    position: absolute; transition: left 0.4s ease, top 0.4s ease;
+    position: absolute; transition: left 0.15s linear, top 0.15s linear;
 }
 @keyframes bey-spin {
     to { transform: rotate(360deg); }
 }
-.bey-spinning { animation: bey-spin 0.3s linear infinite; }
-.bey-spinning.slow { animation-duration: 0.8s; }
-.bey-spinning.very-slow { animation-duration: 1.5s; }
+/* spin classes moved to dynamic section below */
 
 /* Collision flash */
 .collision-flash {
@@ -590,6 +588,228 @@ input.invalid { border-color: var(--danger); }
 .hidden { display: none !important; }
 .flex-center { display: flex; align-items: center; justify-content: center; }
 
+
+/* === Stadium Shake === */
+@keyframes stadium-shake {
+    0%, 100% { transform: translate(0, 0); }
+    25% { transform: translate(-4px, 2px); }
+    50% { transform: translate(3px, -3px); }
+    75% { transform: translate(-2px, 4px); }
+}
+@keyframes stadium-shake-heavy {
+    0%, 100% { transform: translate(0, 0); }
+    10% { transform: translate(-8px, 4px); }
+    20% { transform: translate(6px, -6px); }
+    30% { transform: translate(-5px, 7px); }
+    40% { transform: translate(7px, -3px); }
+    50% { transform: translate(-6px, 5px); }
+    60% { transform: translate(4px, -7px); }
+    70% { transform: translate(-7px, 3px); }
+    80% { transform: translate(5px, -4px); }
+    90% { transform: translate(-3px, 6px); }
+}
+@keyframes stadium-shake-burst {
+    0%, 100% { transform: translate(0, 0); }
+    5% { transform: translate(-12px, 6px); }
+    10% { transform: translate(10px, -10px); }
+    15% { transform: translate(-8px, 12px); }
+    20% { transform: translate(12px, -5px); }
+    25% { transform: translate(-10px, 8px); }
+    30% { transform: translate(6px, -12px); }
+    35% { transform: translate(-12px, 4px); }
+    40% { transform: translate(8px, -8px); }
+    50% { transform: translate(-6px, 10px); }
+    60% { transform: translate(10px, -6px); }
+    70% { transform: translate(-8px, 8px); }
+    80% { transform: translate(6px, -4px); }
+    90% { transform: translate(-4px, 6px); }
+}
+.stadium-arena.shake-light {
+    animation: stadium-shake 0.25s ease-out;
+}
+.stadium-arena.shake-medium {
+    animation: stadium-shake 0.35s ease-out;
+}
+.stadium-arena.shake-heavy {
+    animation: stadium-shake-heavy 0.5s ease-out;
+}
+.stadium-arena.shake-burst {
+    animation: stadium-shake-burst 1.0s ease-out;
+}
+
+/* === White flash overlay for heavy hits === */
+.collision-white-flash {
+    position: absolute; inset: 0; background: #fff; pointer-events: none;
+    opacity: 0; border-radius: 50%;
+    animation: whiteFlash 0.2s ease-out forwards;
+}
+@keyframes whiteFlash {
+    0% { opacity: 0.6; }
+    100% { opacity: 0; }
+}
+
+/* === Burst screen flash === */
+.burst-screen-flash {
+    position: fixed; inset: 0; background: #fff; pointer-events: none;
+    z-index: 500; animation: burstScreenFlash 0.6s ease-out forwards;
+}
+@keyframes burstScreenFlash {
+    0% { opacity: 0.9; }
+    100% { opacity: 0; }
+}
+
+/* === Bigger collision flash === */
+.collision-flash-big {
+    position: absolute; width: 50px; height: 50px; border-radius: 50%;
+    background: radial-gradient(circle, #fff 0%, var(--accent) 40%, rgba(255,51,102,0.6) 70%, transparent 100%);
+    pointer-events: none; animation: collisionPopBig 0.4s ease-out forwards;
+}
+@keyframes collisionPopBig {
+    0% { transform: scale(0); opacity: 1; }
+    50% { transform: scale(2.5); opacity: 0.8; }
+    100% { transform: scale(3.5); opacity: 0; }
+}
+
+/* === Expanding shockwave rings === */
+.collision-ring {
+    position: absolute; border-radius: 50%; pointer-events: none;
+    border: 2px solid var(--accent);
+    animation: ringExpand 0.6s ease-out forwards;
+}
+@keyframes ringExpand {
+    0% { width: 10px; height: 10px; opacity: 1; }
+    100% { width: 100px; height: 100px; opacity: 0; margin-left: -45px; margin-top: -45px; }
+}
+
+/* === Speed-based spin with wobble === */
+.bey-spinning { animation: bey-spin 0.15s linear infinite; }
+.bey-spinning.spin-fast { animation-duration: 0.15s; }
+.bey-spinning.spin-medium { animation-duration: 0.4s; }
+.bey-spinning.spin-slow { animation-duration: 0.7s; }
+.bey-spinning.spin-dying { animation: bey-spin 1.0s linear infinite, bey-wobble 0.3s ease-in-out infinite; }
+@keyframes bey-wobble {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-2px); }
+    75% { transform: translateX(2px); }
+}
+
+/* === Motion trail === */
+.bey-trail {
+    position: absolute; pointer-events: none; border-radius: 50%;
+    opacity: 0.4;
+    animation: trailFade 0.3s ease-out forwards;
+}
+@keyframes trailFade {
+    0% { opacity: 0.4; transform: scale(1); }
+    100% { opacity: 0; transform: scale(0.5); }
+}
+
+/* === Collision counter === */
+.collision-counter {
+    position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+    font-size: var(--fs-sm); color: var(--accent); font-weight: 900;
+    text-shadow: 0 0 10px rgba(0,212,255,0.5);
+    pointer-events: none; z-index: 10;
+}
+
+/* === Dynamic battle commentary === */
+.battle-text-box {
+    min-height: 44px; position: relative; overflow: hidden;
+}
+.battle-text.dramatic {
+    color: var(--accent2); font-size: var(--fs-md); font-weight: 900;
+    text-shadow: 0 0 10px rgba(255,51,102,0.5);
+    animation: textPop 0.3s ease-out;
+}
+.battle-text.critical {
+    color: var(--gold); font-size: var(--fs-lg); font-weight: 900;
+    text-shadow: 0 0 15px rgba(255,215,0,0.6);
+    animation: textPop 0.4s ease-out;
+}
+.battle-text.burst-text {
+    color: var(--danger); font-size: var(--fs-xl); font-weight: 900;
+    text-shadow: 0 0 20px rgba(255,68,68,0.7);
+    animation: burstTextPop 0.6s ease-out;
+}
+@keyframes textPop {
+    0% { transform: scale(1.3); opacity: 0.5; }
+    100% { transform: scale(1); opacity: 1; }
+}
+@keyframes burstTextPop {
+    0% { transform: scale(2); opacity: 0; }
+    30% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* === Wall hit spark === */
+.wall-spark {
+    position: absolute; width: 20px; height: 20px; pointer-events: none;
+    background: radial-gradient(circle, var(--gold) 0%, var(--warning) 50%, transparent 100%);
+    border-radius: 50%;
+    animation: sparkPop 0.3s ease-out forwards;
+}
+@keyframes sparkPop {
+    0% { transform: scale(0.5); opacity: 1; }
+    100% { transform: scale(2); opacity: 0; }
+}
+
+/* === Action panel pulse border === */
+.action-panel.pulse-border {
+    animation: actionPanelPulse 1s ease-in-out infinite;
+    border: 2px solid var(--accent);
+    border-top: 2px solid var(--accent);
+}
+@keyframes actionPanelPulse {
+    0%, 100% { border-color: var(--accent); box-shadow: 0 0 5px rgba(0,212,255,0.3); }
+    50% { border-color: var(--accent2); box-shadow: 0 0 15px rgba(255,51,102,0.4); }
+}
+
+/* === Action timer urgency === */
+.action-timer.urgent {
+    color: var(--danger);
+    animation: timerPulse 0.5s ease-in-out infinite;
+}
+@keyframes timerPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+}
+
+/* === Burst finish text fly-in === */
+.burst-finish-overlay {
+    position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+    z-index: 600; pointer-events: none;
+}
+.burst-finish-text {
+    font-size: 48px; font-weight: 900; color: var(--danger);
+    text-shadow: 0 0 30px rgba(255,68,68,0.8), 0 4px 0 #881133;
+    animation: burstFinishFly 1.5s ease-out forwards;
+    font-family: "Orbitron", sans-serif;
+    letter-spacing: 4px;
+}
+@keyframes burstFinishFly {
+    0% { transform: scale(0) rotate(-10deg); opacity: 0; }
+    20% { transform: scale(1.5) rotate(5deg); opacity: 1; }
+    40% { transform: scale(1.1) rotate(-2deg); opacity: 1; }
+    60% { transform: scale(1.0) rotate(0deg); opacity: 1; }
+    100% { transform: scale(1.0) rotate(0deg); opacity: 0; }
+}
+
+/* === Burst expanding rings === */
+.burst-ring {
+    position: absolute; border-radius: 50%; pointer-events: none;
+    border: 3px solid var(--danger);
+    animation: burstRingExpand 0.8s ease-out forwards;
+}
+@keyframes burstRingExpand {
+    0% { width: 10px; height: 10px; opacity: 1; }
+    100% { width: 200px; height: 200px; opacity: 0; margin-left: -100px; margin-top: -100px; }
+}
+
+/* === Slowdown effect for action window === */
+.bey-spinning.slowdown {
+    animation-duration: 1.5s !important;
+    transition: animation-duration 0.5s;
+}
 </style>
 </head>
 <body>
@@ -729,6 +949,7 @@ input.invalid { border-color: var(--danger); }
         </div>
       </div>
       <div class="stadium-ring" id="stadium-ring">
+        <div class="collision-counter" id="collision-counter">HITS: 0</div>
         <div class="edge-glow"></div>
         <div class="stadium-center-dot"></div>
         <div class="bey-in-stadium" id="bey-p1"></div>
@@ -746,7 +967,7 @@ input.invalid { border-color: var(--danger); }
         <button class="action-btn conserve" onclick="sendAction('conserve')">CONSERVE</button>
         <button class="action-btn special" id="action-special-btn" onclick="sendAction('special')" disabled>SPECIAL</button>
       </div>
-      <div class="waiting-text" id="battle-waiting" style="display:none">Watching the stadium...</div>
+      <div class="waiting-text" id="battle-waiting" style="display:none">The stadium roars...</div>
       <div style="padding:8px;text-align:center">
         <button class="btn btn-danger" id="forfeit-btn" onclick="forfeitBattle()" style="font-size:var(--fs-xs);padding:8px 16px;min-height:36px">FORFEIT</button>
       </div>
@@ -1026,6 +1247,11 @@ const S = {
     // Action window
     actionTimerInterval: null,
     actionSent: false,
+    // Battle dynamics
+    collisionCount: 0,
+    lastBeyPositions: {},
+    battleCommentaryQueue: [],
+    commentaryTimeout: null,
 };
 
 /* === WebSocket === */
@@ -1851,6 +2077,11 @@ function startBattle(msg) {
     positionBey(p1, myBey, ring);
     positionBey(p2, oppBey, ring);
 
+    // Reset collision counter
+    S.collisionCount = 0;
+    var counterEl = document.getElementById('collision-counter');
+    if (counterEl) counterEl.textContent = 'HITS: 0';
+
     setBattleText('3... 2... 1... LET IT RIP!');
     hideActionPanel();
 
@@ -1901,24 +2132,34 @@ function updateTick(msg) {
         var evt = events[i];
         if (evt.type === 'collision') {
             showCollision(evt, ring);
-            setBattleText(evt.text || 'CLASH!');
+        } else if (evt.type === 'wall_hit') {
+            showWallHit(evt, ring);
         } else if (evt.type === 'ring_out') {
-            setBattleText(evt.bey_name + ' was knocked out of the stadium!');
+            showBattleCommentary((evt.bey_name || 'A bey') + ' KNOCKED OUT!', 'critical');
         } else if (evt.type === 'burst') {
             showBurstEffect(evt, ring);
-            setBattleText(evt.bey_name + ' BURST!');
         } else if (evt.type === 'spin_stop') {
-            setBattleText(evt.bey_name + ' stopped spinning!');
+            showBattleCommentary((evt.bey_name || 'A bey') + ' stopped spinning!', 'dramatic');
         }
     }
+    // Motion trails in PvP
+    showMotionTrail(document.getElementById('bey-p1'), myBey, ring);
+    showMotionTrail(document.getElementById('bey-p2'), oppBey, ring);
 }
 
 function updateSpinClass(el, bey) {
-    el.classList.remove('slow', 'very-slow');
+    el.classList.remove('spin-fast', 'spin-medium', 'spin-slow', 'spin-dying', 'slowdown');
     if (!bey) return;
     var pct = (bey.current_stamina || 0) / (bey.max_stamina || 1);
-    if (pct < 0.2) el.classList.add('very-slow');
-    else if (pct < 0.5) el.classList.add('slow');
+    if (pct < 0.15) {
+        el.classList.add('spin-dying');
+    } else if (pct < 0.35) {
+        el.classList.add('spin-slow');
+    } else if (pct < 0.6) {
+        el.classList.add('spin-medium');
+    } else {
+        el.classList.add('spin-fast');
+    }
 }
 
 function updateHUD(myBey, oppBey) {
@@ -1957,33 +2198,178 @@ function updateHUD(myBey, oppBey) {
 }
 
 function showCollision(evt, ring) {
-    var flash = document.createElement('div');
-    flash.className = 'collision-flash';
     var cx = (ring.offsetWidth || 280) / 2;
     var cy = (ring.offsetHeight || 280) / 2;
-    flash.style.left = (cx + (evt.x || 0) * ((ring.offsetWidth || 280) / 200) - 15) + 'px';
-    flash.style.top = (cy + (evt.y || 0) * ((ring.offsetHeight || 280) / 200) - 15) + 'px';
+    var scale = (ring.offsetWidth || 280) / 200;
+    var px = cx + (evt.x || evt.collision_x || 0) * scale;
+    var py = cy + (evt.y || evt.collision_y || 0) * scale;
+    var totalDmg = evt.total_damage || (
+        (evt.bey1_stamina_dmg || 0) + (evt.bey2_stamina_dmg || 0)
+    );
+    var intensity = totalDmg > 15 ? 'heavy' : totalDmg > 8 ? 'medium' : 'light';
+
+    // Collision flash - bigger for harder hits
+    var flash = document.createElement('div');
+    flash.className = intensity === 'light' ? 'collision-flash' : 'collision-flash-big';
+    flash.style.left = (px - (intensity === 'light' ? 15 : 25)) + 'px';
+    flash.style.top = (py - (intensity === 'light' ? 15 : 25)) + 'px';
     ring.appendChild(flash);
-    setTimeout(function() { flash.remove(); }, 400);
+    setTimeout(function() { flash.remove(); }, 500);
+
+    // Shockwave rings for medium/heavy hits
+    if (intensity !== 'light') {
+        for (var r = 0; r < (intensity === 'heavy' ? 3 : 1); r++) {
+            (function(delay) {
+                setTimeout(function() {
+                    var ringEl = document.createElement('div');
+                    ringEl.className = 'collision-ring';
+                    ringEl.style.left = px + 'px';
+                    ringEl.style.top = py + 'px';
+                    ring.appendChild(ringEl);
+                    setTimeout(function() { ringEl.remove(); }, 700);
+                }, delay * 100);
+            })(r);
+        }
+    }
+
+    // White flash overlay for heavy hits
+    if (intensity === 'heavy') {
+        var whiteFlash = document.createElement('div');
+        whiteFlash.className = 'collision-white-flash';
+        ring.appendChild(whiteFlash);
+        setTimeout(function() { whiteFlash.remove(); }, 250);
+    }
+
+    // Screen shake
+    var arena = document.getElementById('stadium-arena');
+    arena.classList.remove('shake-light', 'shake-medium', 'shake-heavy', 'shake-burst');
+    void arena.offsetWidth; // force reflow
+    arena.classList.add('shake-' + intensity);
+    setTimeout(function() {
+        arena.classList.remove('shake-light', 'shake-medium', 'shake-heavy');
+    }, intensity === 'heavy' ? 500 : intensity === 'medium' ? 350 : 250);
+
+    // Update collision counter
+    S.collisionCount++;
+    var counterEl = document.getElementById('collision-counter');
+    if (counterEl) counterEl.textContent = 'HITS: ' + S.collisionCount;
+
+    // Dynamic commentary based on collision
+    var maxDmg = Math.max(evt.bey1_stamina_dmg || 0, evt.bey2_stamina_dmg || 0);
+    if (maxDmg > 12) {
+        showBattleCommentary('CRITICAL STRIKE!', 'critical');
+    } else if (totalDmg > 10) {
+        showBattleCommentary('MASSIVE HIT!', 'dramatic');
+    }
+}
+
+function showWallHit(evt, ring) {
+    var cx = (ring.offsetWidth || 280) / 2;
+    var cy = (ring.offsetHeight || 280) / 2;
+    var scale = (ring.offsetWidth || 280) / 200;
+    var px = cx + (evt.x || 0) * scale;
+    var py = cy + (evt.y || 0) * scale;
+    var spark = document.createElement('div');
+    spark.className = 'wall-spark';
+    spark.style.left = (px - 10) + 'px';
+    spark.style.top = (py - 10) + 'px';
+    ring.appendChild(spark);
+    setTimeout(function() { spark.remove(); }, 350);
+    showBattleCommentary('WALL BOUNCE!', 'dramatic');
+}
+
+function showMotionTrail(el, bey, ring) {
+    var speed = Math.sqrt((bey.vx || 0) * (bey.vx || 0) + (bey.vy || 0) * (bey.vy || 0));
+    if (speed < 3) return;
+    var trail = document.createElement('div');
+    trail.className = 'bey-trail';
+    trail.style.left = el.style.left;
+    trail.style.top = el.style.top;
+    trail.style.width = '30px';
+    trail.style.height = '30px';
+    var elemColor = getElementColor(bey.element);
+    trail.style.background = 'radial-gradient(circle, ' + elemColor + ', transparent)';
+    ring.appendChild(trail);
+    setTimeout(function() { trail.remove(); }, 300);
+}
+
+function getElementColor(elem) {
+    var colors = {
+        fire: '#ff4500', water: '#1e90ff', wind: '#32cd32', earth: '#cd853f',
+        lightning: '#ffd700', ice: '#87ceeb', dark: '#9932cc', light: '#fffacd'
+    };
+    return colors[elem] || '#00d4ff';
+}
+
+function showBattleCommentary(text, cls) {
+    var textEl = document.getElementById('battle-text');
+    textEl.textContent = text;
+    textEl.className = 'battle-text' + (cls ? ' ' + cls : '');
+    // Reset animation
+    void textEl.offsetWidth;
+    if (S.commentaryTimeout) clearTimeout(S.commentaryTimeout);
+    S.commentaryTimeout = setTimeout(function() {
+        textEl.className = 'battle-text';
+    }, 1500);
 }
 
 function showBurstEffect(evt, ring) {
     var cx = (ring.offsetWidth || 280) / 2;
     var cy = (ring.offsetHeight || 280) / 2;
-    var colors = ['var(--accent)', 'var(--accent2)', 'var(--gold)', '#fff'];
-    for (var i = 0; i < 8; i++) {
+    var colors = ['var(--accent)', 'var(--accent2)', 'var(--gold)', '#fff', '#ff4500', '#ff8800'];
+
+    // Many burst pieces flying outward
+    for (var i = 0; i < 16; i++) {
         var piece = document.createElement('div');
         piece.className = 'burst-piece';
         piece.style.background = colors[i % colors.length];
         piece.style.left = cx + 'px';
         piece.style.top = cy + 'px';
-        var angle = (Math.PI * 2 / 8) * i;
-        var dist = 40 + Math.random() * 30;
+        piece.style.width = (8 + Math.random() * 12) + 'px';
+        piece.style.height = (8 + Math.random() * 12) + 'px';
+        var angle = (Math.PI * 2 / 16) * i + Math.random() * 0.3;
+        var dist = 60 + Math.random() * 60;
         piece.style.setProperty('--bx', (Math.cos(angle) * dist) + 'px');
         piece.style.setProperty('--by', (Math.sin(angle) * dist) + 'px');
         ring.appendChild(piece);
-        (function(p) { setTimeout(function() { p.remove(); }, 900); })(piece);
+        (function(p) { setTimeout(function() { p.remove(); }, 1000); })(piece);
     }
+
+    // Multiple expanding rings from collision point
+    for (var r = 0; r < 4; r++) {
+        (function(delay) {
+            setTimeout(function() {
+                var ringEl = document.createElement('div');
+                ringEl.className = 'burst-ring';
+                ringEl.style.left = cx + 'px';
+                ringEl.style.top = cy + 'px';
+                ring.appendChild(ringEl);
+                setTimeout(function() { ringEl.remove(); }, 900);
+            }, delay * 150);
+        })(r);
+    }
+
+    // Massive screen shake
+    var arena = document.getElementById('stadium-arena');
+    arena.classList.remove('shake-light', 'shake-medium', 'shake-heavy', 'shake-burst');
+    void arena.offsetWidth;
+    arena.classList.add('shake-burst');
+    setTimeout(function() { arena.classList.remove('shake-burst'); }, 1000);
+
+    // Full screen white flash
+    var screenFlash = document.createElement('div');
+    screenFlash.className = 'burst-screen-flash';
+    document.body.appendChild(screenFlash);
+    setTimeout(function() { screenFlash.remove(); }, 700);
+
+    // BURST FINISH text fly-in
+    var overlay = document.createElement('div');
+    overlay.className = 'burst-finish-overlay';
+    overlay.innerHTML = '<div class="burst-finish-text">BURST FINISH!</div>';
+    document.body.appendChild(overlay);
+    setTimeout(function() { overlay.remove(); }, 2000);
+
+    showBattleCommentary('BURST FINISH!', 'burst-text');
 }
 
 function setBattleText(text) {
@@ -1995,7 +2381,19 @@ function showActionWindow(msg) {
     S.actionSent = false;
     var panel = document.getElementById('action-panel');
     var waiting = document.getElementById('battle-waiting');
+
+    // Brief slowdown effect before showing buttons
+    var p1 = document.getElementById('bey-p1');
+    var p2 = document.getElementById('bey-p2');
+    p1.classList.add('slowdown');
+    p2.classList.add('slowdown');
+    setTimeout(function() {
+        p1.classList.remove('slowdown');
+        p2.classList.remove('slowdown');
+    }, 500);
+
     panel.style.display = 'grid';
+    panel.classList.add('pulse-border');
     waiting.style.display = 'none';
 
     // Enable/disable special
@@ -2016,14 +2414,18 @@ function showActionWindow(msg) {
         specialBtn.dataset.action = '';
     }
 
-    // Timer
+    // Timer with urgency
     var timeLeft = msg.time_limit || 5;
     var timerEl = document.getElementById('action-timer');
     timerEl.textContent = timeLeft;
+    timerEl.classList.remove('urgent');
     if (S.actionTimerInterval) clearInterval(S.actionTimerInterval);
     S.actionTimerInterval = setInterval(function() {
         timeLeft--;
         timerEl.textContent = Math.max(0, timeLeft);
+        if (timeLeft <= 2) {
+            timerEl.classList.add('urgent');
+        }
         if (timeLeft <= 0) {
             clearInterval(S.actionTimerInterval);
             if (!S.actionSent) {
@@ -2051,8 +2453,11 @@ function sendAction(action) {
 }
 
 function hideActionPanel() {
-    document.getElementById('action-panel').style.display = 'none';
+    var panel = document.getElementById('action-panel');
+    panel.style.display = 'none';
+    panel.classList.remove('pulse-border');
     document.getElementById('battle-waiting').style.display = 'block';
+    document.getElementById('action-timer').classList.remove('urgent');
     if (S.actionTimerInterval) {
         clearInterval(S.actionTimerInterval);
         S.actionTimerInterval = null;
@@ -2068,38 +2473,59 @@ function handleBattleUpdate(msg) {
 
     // Update positions
     var ring = document.getElementById('stadium-ring');
-    positionBey(document.getElementById('bey-p1'), myBey, ring);
-    positionBey(document.getElementById('bey-p2'), oppBey, ring);
+    var p1El = document.getElementById('bey-p1');
+    var p2El = document.getElementById('bey-p2');
+    positionBey(p1El, myBey, ring);
+    positionBey(p2El, oppBey, ring);
+
+    // Motion trails for fast-moving beyblades
+    showMotionTrail(p1El, myBey, ring);
+    showMotionTrail(p2El, oppBey, ring);
 
     // Update spin speed class
-    updateSpinClass(document.getElementById('bey-p1'), myBey);
-    updateSpinClass(document.getElementById('bey-p2'), oppBey);
+    updateSpinClass(p1El, myBey);
+    updateSpinClass(p2El, oppBey);
 
     // Update HUD
     updateHUD(myBey, oppBey);
 
     // Process events
     var events = msg.events || [];
-    var lastText = null;
+    var hadCollision = false;
     for (var i = 0; i < events.length; i++) {
         var evt = events[i];
         if (evt.type === 'collision') {
             showCollision(evt, ring);
-            lastText = evt.text || 'CLASH!';
+            hadCollision = true;
+        } else if (evt.type === 'wall_hit') {
+            showWallHit(evt, ring);
         } else if (evt.type === 'ring_out') {
-            lastText = (evt.bey_name || 'A bey') + ' was knocked out!';
+            showBattleCommentary((evt.bey_name || 'A bey') + ' KNOCKED OUT!', 'critical');
         } else if (evt.type === 'burst') {
             showBurstEffect(evt, ring);
-            lastText = (evt.bey_name || 'A bey') + ' BURST!';
         } else if (evt.type === 'spin_stop') {
-            lastText = (evt.bey_name || 'A bey') + ' stopped spinning!';
+            showBattleCommentary((evt.bey_name || 'A bey') + ' stopped spinning!', 'dramatic');
         } else if (evt.type === 'action_chosen') {
-            lastText = (evt.bey_name || '???') + ' used ' + (evt.action || '').toUpperCase() + '!';
+            showBattleCommentary((evt.bey_name || '???') + ' used ' + (evt.action || '').toUpperCase() + '!', '');
         } else if (evt.type === 'special_activated') {
-            lastText = (evt.bey_name || '???') + ' used SPECIAL MOVE!';
+            showBattleCommentary((evt.bey_name || '???') + ' SPECIAL MOVE!', 'critical');
         }
     }
-    if (lastText) setBattleText(lastText);
+
+    // Dynamic commentary based on beyblade state
+    if (!hadCollision) {
+        var myPct = (myBey.current_stamina || 0) / (myBey.max_stamina || 1);
+        var oppPct = (oppBey.current_stamina || 0) / (oppBey.max_stamina || 1);
+        var myBurst = myBey.burst_meter || 0;
+        var oppBurst = oppBey.burst_meter || 0;
+        if (myBurst > 70 || oppBurst > 70) {
+            var dangerBey = myBurst > oppBurst ? (myBey.name || 'Your bey') : (oppBey.name || 'Opponent');
+            showBattleCommentary('BURST DANGER! ' + dangerBey + '!', 'dramatic');
+        } else if (myPct < 0.2 || oppPct < 0.2) {
+            var wobbleBey = myPct < oppPct ? (myBey.name || 'Your bey') : (oppBey.name || 'Opponent');
+            showBattleCommentary(wobbleBey + ' is wobbling!', 'dramatic');
+        }
+    }
 
     // Store available actions and show action window for next turn
     S.availableActions = msg.available_actions || ['rush', 'guard', 'conserve'];
