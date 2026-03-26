@@ -218,6 +218,20 @@ def compute_bey_stats(blade_data, ratchet_data, bit_data, blade_level=1, ratchet
 
 def get_client_data():
     """Return data payload for the client (sent on login)."""
+    # Enrich starter kits with full blade/ratchet/bit data and combined stats
+    enriched_kits = {}
+    for kit_id, kit in STARTER_KITS.items():
+        blade_data = BLADES.get(kit["blade"], {})
+        ratchet_data = RATCHETS.get(kit["ratchet"], {})
+        bit_data = BITS.get(kit["bit"], {})
+        combined = compute_bey_stats(blade_data, ratchet_data, bit_data) if blade_data and ratchet_data and bit_data else {}
+        enriched_kits[kit_id] = {
+            **kit,
+            "blade_data": blade_data,
+            "ratchet_data": ratchet_data,
+            "bit_data": bit_data,
+            "combined_stats": combined,
+        }
     return {
         "blades": BLADES_LIST,
         "ratchets": RATCHETS_LIST,
@@ -225,5 +239,5 @@ def get_client_data():
         "attacks": ATTACKS,
         "type_matchups": TYPE_MATCHUPS,
         "element_chart": ELEMENT_CHART,
-        "starter_kits": STARTER_KITS,
+        "starter_kits": enriched_kits,
     }

@@ -980,6 +980,8 @@ const S = {
     team: [],
     parts: [],
     beyblades: [],
+    teamBeys: [],
+    storageBeys: [],
     currentBey: null,
     opponentBey: null,
     battleState: null,
@@ -1021,7 +1023,7 @@ function connect() {
         // Try auto-login from stored token
         var token = localStorage.getItem('bb_token');
         if (token) {
-            send({ type: 'auto_login', token: token });
+            send({ type: 'login', token: token });
         }
     };
     S.ws.onmessage = function(e) {
@@ -1112,7 +1114,16 @@ function handleMessage(msg) {
         showPinSetup(msg.username);
         break;
     case 'pin_ok':
-        // Continue login
+        // Continue login - show starter or hub
+        S.user = msg.username;
+        S.account = msg;
+        localStorage.setItem('bb_token', msg.token);
+        if (msg.needs_starter) {
+            showStarterScreen(msg);
+        } else {
+            updateHub(msg);
+            showScreen('hub');
+        }
         break;
     case 'starter_chosen':
         S.account = msg;
@@ -1218,6 +1229,14 @@ function handleMessage(msg) {
         S.myPlayerIndex = 0;
         startBattle(msg);
         break;
+    case 'elite_battle_start':
+        S.myPlayerIndex = 0;
+        startBattle(msg);
+        break;
+    case 'champion_battle_start':
+        S.myPlayerIndex = 0;
+        startBattle(msg);
+        break;
     case 'master_victory':
         showMasterVictory(msg);
         break;
@@ -1236,15 +1255,20 @@ function handleMessage(msg) {
         S.parts = msg.parts || [];
         renderWorkshopParts();
         break;
-    case 'beyblades_data':
-        S.beyblades = msg.beyblades || [];
+    case 'team_data':
+        S.teamBeys = msg.team || [];
+        renderBuilder();
+        break;
+    case 'storage_data':
+        S.storageBeys = msg.storage || [];
         renderBuilder();
         break;
     case 'assemble_ok':
         showToast('Beyblade assembled!', 'success');
         S.selectedBlade = null; S.selectedRatchet = null; S.selectedBit = null;
         updateAssemblySlots();
-        send({ type: 'get_beyblades' });
+        send({ type: 'get_team' });
+        send({ type: 'get_storage' });
         send({ type: 'get_parts' });
         break;
     // Catalog
@@ -1285,6 +1309,9 @@ function handleMessage(msg) {
         showToast('Trade complete!', 'success');
         goHome();
         break;
+    case 'bug_report_submitted':
+        showToast(msg.message || 'Bug report submitted!', 'success');
+        break;
     case 'trade_cancelled':
     case 'trade_left':
         showToast('Trade ended.');
@@ -1294,6 +1321,10 @@ function handleMessage(msg) {
     case 'tournament_data':
         renderTournament(msg);
         if (S.currentScreen !== 'tournament') showScreen('tournament');
+        break;
+    case 'tournament_started':
+        renderTournament(msg);
+        showScreen('tournament');
         break;
     case 'tournament_battle_start':
         S.myPlayerIndex = 0;
@@ -1305,6 +1336,21 @@ function handleMessage(msg) {
     case 'tournament_defeat':
         showToast(msg.message || 'Tournament over.');
         goHome();
+        break;
+    case 'tournament_complete':
+        showToast('Tournament complete!', 'success');
+        goHome();
+        break;
+    case 'tournament_forfeited':
+        showToast('Tournament forfeited.');
+        goHome();
+        break;
+    // Battle end (journey/free/master/training)
+    case 'battle_end':
+        showResult(msg);
+        break;
+    case 'tournament_battle_end':
+        showResult(msg);
         break;
     // Elite list
     case 'elite_list':
@@ -1406,7 +1452,7 @@ function showStarterScreen(msg) {
     showScreen('starter');
     S.selectedStarter = null;
     var grid = document.getElementById('starter-grid');
-    var kits = msg.starter_kits || {};
+    var kits = (S.gameData && S.gameData.starter_kits) ? S.gameData.starter_kits : {};
     var html = '';
     var kitKeys = Object.keys(kits);
     for (var k = 0; k < kitKeys.length; k++) {
@@ -1445,7 +1491,7 @@ function selectStarter(el, key) {
 
 function confirmStarter() {
     if (!S.selectedStarter) return;
-    send({ type: 'choose_starter', starter_id: S.selectedStarter });
+    send({ type: 'choose_starter', kit_id: S.selectedStarter });
 }
 
 /* === Hub === */
@@ -1468,14 +1514,15 @@ function updateHub(data) {
 /* === Builder (My Beyblades) === */
 function showBuilder() {
     showScreen('builder');
-    send({ type: 'get_beyblades' });
+    send({ type: 'get_team' });
+    send({ type: 'get_storage' });
 }
 
 function renderBuilder() {
     var teamDiv = document.getElementById('builder-team');
     var storageDiv = document.getElementById('builder-storage');
-    var teamBeys = S.beyblades.filter(function(b) { return b.is_in_team; });
-    var storageBeys = S.beyblades.filter(function(b) { return !b.is_in_team; });
+    var teamBeys = S.teamBeys || [];
+    var storageBeys = S.storageBeys || [];
 
     var html = '';
     if (teamBeys.length === 0) {
@@ -1663,7 +1710,7 @@ function renderShop(msg) {
 }
 
 function buyItem(itemId) {
-    send({ type: 'buy_item', item_id: itemId });
+    send({ type: 'buy_item', item_type: itemId });
 }
 
 function handleBuyResult(msg) {
@@ -1678,7 +1725,7 @@ function handleBuyResult(msg) {
 /* === Masters === */
 function showMasters() {
     showScreen('masters');
-    send({ type: 'get_masters' });
+    send({ type: 'get_stadiums' });
 }
 
 function renderMastersList(msg) {
@@ -1706,7 +1753,7 @@ function renderMastersList(msg) {
 }
 
 function challengeMaster(masterId) {
-    send({ type: 'master_intro', master_id: masterId });
+    send({ type: 'start_master', master_id: masterId });
 }
 
 function showMasterIntro(master) {
@@ -1720,7 +1767,7 @@ function showMasterIntro(master) {
         '<span class="elem-badge ' + (master.element || '') + '">' + (master.element || '').toUpperCase() + '</span>';
     document.getElementById('masterintro-dialog').textContent = master.dialog_intro || '';
     document.getElementById('masterintro-battle-btn').onclick = function() {
-        send({ type: 'master_battle_start', master_id: master.id });
+        send({ type: 'start_master', master_id: master.id });
     };
     document.getElementById('masterintro-back-btn').onclick = function() { showMasters(); };
 }
@@ -1955,7 +2002,8 @@ function sendAction(action) {
         action = specialBtn.dataset.action || 'special';
     }
     S.actionSent = true;
-    send({ type: 'battle_action', action: action });
+    var msgType = S.roomCode ? 'choose_action' : 'battle_action';
+    send({ type: msgType, action: action });
 }
 
 function hideActionPanel() {
@@ -2038,7 +2086,7 @@ function lockPower() {
 function submitLaunch() {
     if (!S.powerLocked) lockPower();
     send({
-        type: 'submit_launch',
+        type: 'set_launch',
         spin_direction: S.spinDirection,
         launch_power: S.launchPower,
         launch_position: S.launchPosition,
@@ -2107,7 +2155,7 @@ function createAIBattle() {
 }
 
 function leaveRoom() {
-    send({ type: 'leave_room' });
+    send({ type: 'leave' });
     goHome();
 }
 
@@ -2130,7 +2178,7 @@ function showBeybladeSelectScreen(msg) {
     }, 1000);
 
     // Request player's assembled beyblades
-    send({ type: 'get_beyblades' });
+    send({ type: 'get_team' });
     // Render them when data arrives
 }
 
@@ -2309,7 +2357,7 @@ function showTournamentVictory(msg) { showResult(msg); }
 /* === Elite List === */
 function showEliteList() {
     showScreen('elitelist');
-    send({ type: 'get_elite_list' });
+    send({ type: 'get_elite' });
 }
 
 function renderEliteList(msg) {
@@ -2318,7 +2366,7 @@ function renderEliteList(msg) {
     var html = '';
     for (var i = 0; i < elites.length; i++) {
         var e = elites[i];
-        html += '<div class="master-card" onclick="challengeElite(' + e.id + ')" style="display:block;margin-bottom:8px">';
+        html += '<div class="master-card" onclick="challengeElite(' + e.index + ')" style="display:block;margin-bottom:8px">';
         html += '<div class="master-name">' + esc(e.name) + '</div>';
         html += '<div class="master-title-text">' + esc(e.title || '') + '</div>';
         html += '</div>';
@@ -2327,7 +2375,7 @@ function renderEliteList(msg) {
     content.innerHTML = html;
 }
 
-function challengeElite(id) { send({ type: 'elite_challenge', elite_id: id }); }
+function challengeElite(id) { send({ type: 'start_elite', elite_index: id }); }
 
 /* === Training === */
 function showTraining() {
@@ -2346,7 +2394,7 @@ function closeBugReport() { document.getElementById('bug-overlay').classList.rem
 function submitBug() {
     var text = document.getElementById('bug-text').value.trim();
     if (text) {
-        send({ type: 'bug_report', text: text });
+        send({ type: 'submit_bug_report', description: text });
         showToast('Bug report sent!', 'success');
         document.getElementById('bug-text').value = '';
     }

@@ -229,6 +229,14 @@ class AccountManager:
             return None
         return self._row_to_dict(row)
 
+    def set_pin(self, player_id, new_pin):
+        """Set or update a player's 4-digit PIN."""
+        conn = self._conn()
+        conn.execute("UPDATE players SET user_pin = ? WHERE id = ?", (str(new_pin), player_id))
+        conn.commit()
+        conn.close()
+        return True
+
     def _row_to_dict(self, row):
         d = dict(row)
         return {

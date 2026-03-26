@@ -462,12 +462,22 @@ async def _handle_trade_message(player, msg_type, data):
         idx = room.get_player_index(player)
         if idx == -1:
             return True
-        room.offers[idx] = data.get("part_id")
+        part_id = data.get("part_id")
+        room.offers[idx] = part_id
         room.confirmed = [False, False]
+        # Look up full part info for the offer display
+        part_info = None
+        if part_id and getattr(player, 'account_id', None):
+            all_parts = account_mgr.get_parts(player.account_id)
+            for p in all_parts:
+                if p.get("id") == part_id:
+                    part_info = p
+                    break
+        offer_data = part_info or {"id": part_id, "name": "Unknown Part"}
         opp = room.get_opponent(player)
         if opp:
-            await opp.send({"type": "trade_partner_offer", "part_id": data.get("part_id")})
-        await player.send({"type": "trade_offer_set", "part_id": data.get("part_id")})
+            await opp.send({"type": "trade_partner_offer", "offer": offer_data})
+        await player.send({"type": "trade_offer_set", "offer": offer_data})
         return True
 
     if msg_type == "trade_confirm":
@@ -538,11 +548,11 @@ async def handle_message(player, msg):
                 player.account_id = profile["id"]
                 full = account_mgr.get_profile(profile["id"])
                 needs_starter = not full.get("team") and not full.get("starter_blade_id")
+                await player.send({"type": "game_data", **get_client_data()})
                 resp = {"type": "auto_login_success", "username": profile["username"],
                         "token": profile["token_"], "needs_starter": needs_starter}
                 resp.update(full)
                 await player.send(resp)
-                await player.send({"type": "game_data", **get_client_data()})
             else:
                 await player.send({"type": "auto_login_failed"})
             return
@@ -555,11 +565,11 @@ async def handle_message(player, msg):
                 player.account_id = profile["id"]
                 full = account_mgr.get_profile(profile["id"])
                 needs_starter = not full.get("team") and not full.get("starter_blade_id")
+                await player.send({"type": "game_data", **get_client_data()})
                 resp = {"type": "login_success", "username": profile["username"],
                         "token": profile["token_"], "needs_starter": needs_starter}
                 resp.update(full)
                 await player.send(resp)
-                await player.send({"type": "game_data", **get_client_data()})
             else:
                 await player.send({"type": "error", "message": "Wrong code. Try again."})
             return
@@ -569,10 +579,12 @@ async def handle_message(player, msg):
             username = username.strip()
             row = None
             try:
-                cur = account_mgr.conn.execute(
+                _conn = account_mgr._conn()
+                cur = _conn.execute(
                     "SELECT id, username, token_, user_pin FROM players WHERE username = ? COLLATE NOCASE",
                     (username,))
                 row = cur.fetchone()
+                _conn.close()
             except Exception:
                 pass
 
@@ -587,28 +599,62 @@ async def handle_message(player, msg):
                     player.account_id = row[0]
                     full = account_mgr.get_profile(row[0])
                     needs_starter = not full.get("team") and not full.get("starter_blade_id")
+                    await player.send({"type": "game_data", **get_client_data()})
                     resp = {"type": "login_success", "username": row[1],
                             "token": row[2], "needs_starter": needs_starter}
                     resp.update(full)
                     await player.send(resp)
-                    await player.send({"type": "game_data", **get_client_data()})
             else:
-                # New user - register
+                # New user - register, then require PIN setup
                 result, error = account_mgr.register(username)
                 if error:
                     await player.send({"type": "error", "message": error})
                 else:
                     player.username = result["username"]
                     player.account_id = result["id"]
-                    full = account_mgr.get_profile(result["id"])
-                    resp = {"type": "login_success", "username": result["username"],
-                            "token": result["token_"], "needs_starter": True}
-                    resp.update(full)
-                    await player.send(resp)
                     await player.send({"type": "game_data", **get_client_data()})
+                    await player.send({"type": "pin_setup_required",
+                                       "username": result["username"],
+                                       "token": result["token_"]})
             return
 
         await player.send({"type": "error", "message": "Enter a username."})
+        return
+
+    if msg_type == "set_pin":
+        if not getattr(player, 'account_id', None):
+            await player.send({"type": "error", "message": "Not logged in."})
+            return
+        pin_val = str(data.get("pin", "")).strip()
+        if len(pin_val) != 4 or not pin_val.isdigit():
+            await player.send({"type": "error", "message": "PIN must be exactly 4 digits."})
+            return
+        account_mgr.set_pin(player.account_id, pin_val)
+        full = account_mgr.get_profile(player.account_id)
+        needs_starter = not full.get("team") and not full.get("starter_blade_id")
+        await player.send({"type": "game_data", **get_client_data()})
+        resp = {"type": "login_success", "username": full["username"],
+                "token": full["token_"], "needs_starter": needs_starter}
+        resp.update(full)
+        await player.send(resp)
+        return
+
+    if msg_type == "verify_pin":
+        uname = str(data.get("username", "")).strip()
+        pin_val = str(data.get("pin", "")).strip()
+        profile = account_mgr.login_with_username(uname, pin_val)
+        if profile:
+            player.username = profile["username"]
+            player.account_id = profile["id"]
+            full = account_mgr.get_profile(profile["id"])
+            needs_starter = not full.get("team") and not full.get("starter_blade_id")
+            await player.send({"type": "game_data", **get_client_data()})
+            resp = {"type": "login_success", "username": profile["username"],
+                    "token": profile["token_"], "needs_starter": needs_starter}
+            resp.update(full)
+            await player.send(resp)
+        else:
+            await player.send({"type": "error", "message": "Wrong code. Try again."})
         return
 
     if msg_type == "choose_starter":
@@ -713,7 +759,7 @@ async def handle_message(player, msg):
             return
         profile = account_mgr.get_profile(player.account_id)
         inventory = account_mgr.get_inventory(player.account_id)
-        items = [{"type": k, "name": v["name"], "price": v["price"], "category": v.get("category", "repair"), "owned": inventory.get(k, 0)} for k, v in SHOP_ITEMS.items()]
+        items = {k: {"type": k, "name": v["name"], "price": v["price"], "category": v.get("category", "repair"), "owned": inventory.get(k, 0)} for k, v in SHOP_ITEMS.items()}
         await player.send({"type": "shop_data", "items": items, "bey_points": profile.get("bey_points", 500) if profile else 500, "inventory": inventory})
         return
 
@@ -798,7 +844,7 @@ async def handle_message(player, msg):
         trophies = account_mgr.get_trophies(player.account_id)
         tid = {t["master_id"] for t in trophies}
         ml = [{"id": m["id"], "name": m["name"], "type": m.get("type", "balance"), "completed": str(m["id"]) in tid, "team_size": len(m.get("team", []))} for m in masters]
-        await player.send({"type": "stadium_list", "masters": ml, "trophies": trophies})
+        await player.send({"type": "masters_list", "masters": ml, "trophies": trophies})
         return
 
     if msg_type == "start_master":
@@ -1021,7 +1067,7 @@ async def handle_message(player, msg):
         active_encounters[player.id] = encounter
         state = encounter.serialize_state()
         state["is_training"] = True
-        await player.send({"type": "training_battle_start", **state})
+        await player.send({"type": "training_start", **state})
         return
 
     if msg_type == "submit_bug_report":
