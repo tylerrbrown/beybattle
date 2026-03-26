@@ -289,7 +289,7 @@ input.invalid { border-color: var(--danger); }
     box-shadow: 0 0 10px var(--accent);
 }
 .bey-in-stadium {
-    position: absolute; transition: left 0.15s linear, top 0.15s linear;
+    position: absolute; transition: left 0.25s linear, top 0.25s linear;
 }
 @keyframes bey-spin {
     to { transform: rotate(360deg); }
@@ -1430,6 +1430,12 @@ function handleMessage(msg) {
     case 'tick_update':
         updateTick(msg);
         break;
+    case 'battle_tick':
+        handleBattleTick(msg);
+        break;
+    case 'battle_countdown':
+        setBattleText('3... 2... 1... LET IT RIP!');
+        break;
     case 'action_window':
         showActionWindow(msg);
         break;
@@ -2085,13 +2091,17 @@ function startBattle(msg) {
     setBattleText('3... 2... 1... LET IT RIP!');
     hideActionPanel();
 
-    // After countdown, show action buttons for first turn
-    setTimeout(function() {
-        if (!S.battleOver && S.currentScreen === 'stadium') {
-            setBattleText('Choose your action!');
-            showActionWindow({ available_actions: S.availableActions, time_limit: 5 });
-        }
-    }, 2000);
+    // For PvP battles, show action buttons after countdown
+    // For journey/free battles, the server drives the action windows
+    if (S.roomCode) {
+        setTimeout(function() {
+            if (!S.battleOver && S.currentScreen === 'stadium') {
+                setBattleText('Choose your action!');
+                showActionWindow({ available_actions: S.availableActions, time_limit: 5 });
+            }
+        }, 2000);
+    }
+    // Journey battles: server sends battle_tick and action_window automatically
 }
 
 function positionBey(el, bey, ring) {
@@ -2527,13 +2537,82 @@ function handleBattleUpdate(msg) {
         }
     }
 
-    // Store available actions and show action window for next turn
-    S.availableActions = msg.available_actions || ['rush', 'guard', 'conserve'];
-    setTimeout(function() {
-        if (!S.battleOver && S.currentScreen === 'stadium') {
-            showActionWindow({ available_actions: S.availableActions, time_limit: 5 });
+    // Store available actions (action window is now server-driven)
+    if (msg.available_actions) {
+        S.availableActions = msg.available_actions;
+    }
+}
+
+function handleBattleTick(msg) {
+    // Server-driven tick update from the async battle loop
+    var bey1 = msg.bey1 || {};
+    var bey2 = msg.bey2 || {};
+    // bey1 = player, bey2 = opponent (server always sends player as bey1)
+    var myBey = bey1;
+    var oppBey = bey2;
+    S.currentBey = myBey;
+    S.opponentBey = oppBey;
+
+    // Update positions
+    var ring = document.getElementById('stadium-ring');
+    var p1El = document.getElementById('bey-p1');
+    var p2El = document.getElementById('bey-p2');
+    positionBey(p1El, myBey, ring);
+    positionBey(p2El, oppBey, ring);
+
+    // Motion trails for fast-moving beyblades
+    showMotionTrail(p1El, myBey, ring);
+    showMotionTrail(p2El, oppBey, ring);
+
+    // Update spin speed class
+    updateSpinClass(p1El, myBey);
+    updateSpinClass(p2El, oppBey);
+
+    // Update HUD
+    updateHUD(myBey, oppBey);
+
+    // Update collision counter
+    if (msg.total_collisions !== undefined) {
+        S.collisionCount = msg.total_collisions;
+        var counterEl = document.getElementById('collision-counter');
+        if (counterEl) counterEl.textContent = 'HITS: ' + S.collisionCount;
+    }
+
+    // Process events
+    var events = msg.events || [];
+    var hadCollision = false;
+    for (var i = 0; i < events.length; i++) {
+        var evt = events[i];
+        if (evt.type === 'collision') {
+            showCollision(evt, ring);
+            hadCollision = true;
+        } else if (evt.type === 'wall_hit') {
+            showWallHit(evt, ring);
+        } else if (evt.type === 'ring_out') {
+            showBattleCommentary((evt.bey_name || 'A bey') + ' KNOCKED OUT!', 'critical');
+        } else if (evt.type === 'burst') {
+            showBurstEffect(evt, ring);
+        } else if (evt.type === 'action_chosen') {
+            showBattleCommentary((evt.bey_name || '???') + ' used ' + (evt.action || '').toUpperCase() + '!', '');
+        } else if (evt.type === 'special_activated') {
+            showBattleCommentary((evt.bey_name || '???') + ' SPECIAL MOVE!', 'critical');
         }
-    }, 800);
+    }
+
+    // Dynamic commentary based on beyblade state
+    if (!hadCollision) {
+        var myPct = (myBey.current_stamina || 0) / (myBey.max_stamina || 1);
+        var oppPct = (oppBey.current_stamina || 0) / (oppBey.max_stamina || 1);
+        var myBurst = myBey.burst_meter || 0;
+        var oppBurst = oppBey.burst_meter || 0;
+        if (myBurst > 70 || oppBurst > 70) {
+            var dangerBey = myBurst > oppBurst ? (myBey.name || 'Your bey') : (oppBey.name || 'Opponent');
+            showBattleCommentary('BURST DANGER! ' + dangerBey + '!', 'dramatic');
+        } else if (myPct < 0.2 || oppPct < 0.2) {
+            var wobbleBey = myPct < oppPct ? (myBey.name || 'Your bey') : (oppBey.name || 'Opponent');
+            showBattleCommentary(wobbleBey + ' is wobbling!', 'dramatic');
+        }
+    }
 }
 
 function forfeitBattle() {

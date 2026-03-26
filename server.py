@@ -395,60 +395,128 @@ def _award_journey_rewards(player, encounter, won, is_master=False, is_elite=Fal
     return rewards
 
 
-def _simulate_journey_tick(encounter, player_action):
-    """Run one action cycle in a journey battle."""
+def _pick_ai_action(opp_bey):
+    """Choose an AI action based on bey type and stamina."""
+    opp_type = opp_bey.bey_type
+    stamina_pct = opp_bey.current_stamina / max(1, opp_bey.max_stamina)
+    if opp_bey.special_move_id and not opp_bey.special_used and random.random() < 0.2:
+        return opp_bey.special_move_id
+    elif opp_type == "attack":
+        return "rush" if stamina_pct > 0.3 else random.choice(["guard", "conserve"])
+    elif opp_type == "defense":
+        return "guard" if stamina_pct > 0.2 else "conserve"
+    elif opp_type == "stamina":
+        return "conserve" if stamina_pct > 0.4 else "rush"
+    else:
+        return random.choice(["rush", "guard", "conserve"])
+
+
+async def _run_journey_battle(player, encounter):
+    """Async loop that drives a journey battle to completion."""
+    stadium = encounter.stadium  # StadiumState, created once at encounter start
+
+    try:
+        # Countdown
+        await player.send({"type": "battle_countdown", "seconds": 3})
+        await asyncio.sleep(2)
+
+        tick_interval = 0.1   # 100ms per tick (10 ticks/sec)
+        update_every = 3      # send client update every 3 ticks (300ms)
+        action_every = 30     # action window every 30 ticks (3 sec)
+
+        while not stadium.is_over:
+            events = stadium.resolve_tick()
+
+            # Check for pending player action
+            pending = encounter.pending_action
+            if pending:
+                stadium.apply_action(1, pending)
+                encounter.pending_action = None
+
+            # AI picks action at action windows
+            if stadium.tick % action_every == 0:
+                ai_action = _pick_ai_action(encounter.opponent)
+                stadium.apply_action(2, ai_action)
+                # Tell client it is action time
+                active = encounter.get_active()
+                available = ['rush', 'guard', 'conserve']
+                if active.special_move_id and not active.special_used:
+                    available.append(active.special_move_id)
+                await player.send({"type": "action_window",
+                                   "available_actions": available,
+                                   "time_limit": 3})
+
+            # Send position update to client
+            if stadium.tick % update_every == 0 or events:
+                await player.send({
+                    "type": "battle_tick",
+                    "tick": stadium.tick,
+                    "bey1": stadium.bey1.to_dict(),
+                    "bey2": stadium.bey2.to_dict(),
+                    "events": events,
+                    "total_collisions": stadium.total_collisions,
+                })
+
+            await asyncio.sleep(tick_interval)
+
+        # Battle over - determine winner and send results
+        winner = "player" if stadium.winner == 1 else "opponent"
+        won = winner == "player"
+        finish_type = stadium.finish_type or "spin"
+
+        if getattr(encounter, 'is_training', False):
+            await player.send({
+                "type": "battle_end", "events": [],
+                "won": won, "is_training": True,
+                "finish_type": finish_type,
+                **encounter.serialize_state(),
+            })
+        elif getattr(encounter, 'is_tournament', False):
+            ts = encounter.tournament_state
+            oi = encounter.tournament_opponent
+            adv, comp, champ = ts.record_result(won)
+            bp = oi.get("reward_bp", 0) if won else 0
+            if bp > 0 and getattr(player, 'account_id', None):
+                account_mgr.add_bey_points(player.account_id, bp)
+            await player.send({
+                "type": "tournament_battle_end", "events": [],
+                "won": won, "advanced": adv,
+                "bey_points_earned": bp,
+                **encounter.serialize_state(),
+            })
+        else:
+            rewards = _award_journey_rewards(
+                player, encounter, won,
+                is_master=getattr(encounter, 'is_master', False),
+                is_elite=getattr(encounter, 'is_elite', False),
+                is_champion=getattr(encounter, 'is_champion', False),
+                master_data=getattr(encounter, 'master_data', None),
+            )
+            await player.send({
+                "type": "battle_end", "events": [],
+                "finish_type": finish_type,
+                **rewards, **encounter.serialize_state(),
+            })
+
+    except asyncio.CancelledError:
+        pass  # Battle was forfeited or player disconnected
+    except Exception as e:
+        print(f"[battle] Loop error for {player.id}: {e}")
+        traceback.print_exc()
+    finally:
+        if player.id in active_encounters:
+            del active_encounters[player.id]
+
+
+def _setup_encounter_for_battle(encounter):
+    """Create StadiumState on encounter and prepare for async battle loop."""
     player_bey = encounter.get_active()
     opp_bey = encounter.opponent
-
-    if not player_bey.is_alive() or not opp_bey.is_alive():
-        winner = "player" if not opp_bey.is_alive() else "opponent"
-        return [], True, winner
-
     stadium = StadiumState(player_bey, opp_bey)
-    if not hasattr(encounter, '_last_stadium') or not encounter._last_stadium:
-        stadium.initialize_positions("middle", "middle")
-
-    if player_action in ("rush", "guard", "conserve"):
-        stadium.apply_action(1, player_action)
-    elif player_action == player_bey.special_move_id and not player_bey.special_used:
-        stadium.apply_action(1, player_action)
-
-    opp_type = opp_bey.bey_type
-    stamina_pct = opp_bey.current_stamina / opp_bey.max_stamina
-    if opp_bey.special_move_id and not opp_bey.special_used and random.random() < 0.2:
-        ai_action = opp_bey.special_move_id
-    elif opp_type == "attack":
-        ai_action = "rush" if stamina_pct > 0.3 else random.choice(["guard", "conserve"])
-    elif opp_type == "defense":
-        ai_action = "guard" if stamina_pct > 0.2 else "conserve"
-    elif opp_type == "stamina":
-        ai_action = "conserve" if stamina_pct > 0.4 else "rush"
-    else:
-        ai_action = random.choice(["rush", "guard", "conserve"])
-    stadium.apply_action(2, ai_action)
-
-    all_events = []
-    for _ in range(5):
-        events = stadium.resolve_tick()
-        all_events.extend(events)
-        if stadium.is_over:
-            break
-
-    encounter.turn_count += 1
-    encounter._last_stadium = stadium
-
-    if stadium.is_over or not player_bey.is_alive() or not opp_bey.is_alive():
-        if not opp_bey.is_alive():
-            winner = "player"
-        elif not player_bey.is_alive():
-            winner = "opponent"
-        elif stadium.winner == 1:
-            winner = "player"
-        else:
-            winner = "opponent"
-        return all_events, True, winner
-
-    return all_events, False, None
+    stadium.initialize_positions("middle", "middle")
+    encounter.stadium = stadium
+    encounter.pending_action = None
+    encounter.battle_task = None
 
 
 # ---- Trade Message Handler ----------------------------------------------
@@ -847,11 +915,7 @@ async def handle_message(player, msg):
             return
         opponent, rarity = generate_free_battle(_avg_team_level(td))
         encounter = FreeBattle(player, team, opponent, rarity)
-        # Initialize positions so both beys are visible from the start
-        encounter.get_active().x = -45.0
-        encounter.get_active().y = 0.0
-        encounter.opponent.x = 45.0
-        encounter.opponent.y = 0.0
+        _setup_encounter_for_battle(encounter)
         active_encounters[player.id] = encounter
         active = encounter.get_active()
         available = ['rush', 'guard', 'conserve']
@@ -859,51 +923,14 @@ async def handle_message(player, msg):
             available.append(active.special_move_id)
         await player.send({"type": "free_battle_start",
                            "available_actions": available, **encounter.serialize_state()})
+        # Launch the async battle loop
+        encounter.battle_task = asyncio.create_task(_run_journey_battle(player, encounter))
         return
 
     if msg_type == "battle_action":
         encounter = active_encounters.get(player.id)
-        if not encounter:
-            await player.send({"type": "error", "message": "No active battle."})
-            return
-        events, over, winner = _simulate_journey_tick(encounter, data.get("action", "rush"))
-        if over:
-            del active_encounters[player.id]
-            won = winner == "player"
-            if getattr(encounter, 'is_training', False):
-                finish_type = "spin"
-                if encounter.opponent.is_burst or encounter.get_active().is_burst:
-                    finish_type = "burst"
-                elif encounter.opponent.is_ring_out or encounter.get_active().is_ring_out:
-                    finish_type = "xtreme"
-                await player.send({"type": "battle_end", "events": events, "won": won,
-                                   "is_training": True, "finish_type": finish_type,
-                                   **encounter.serialize_state()})
-            elif getattr(encounter, 'is_tournament', False):
-                ts = encounter.tournament_state
-                oi = encounter.tournament_opponent
-                adv, comp, champ = ts.record_result(won)
-                bp = oi.get("reward_bp", 0) if won else 0
-                if bp > 0:
-                    account_mgr.add_bey_points(player.account_id, bp)
-                await player.send({"type": "tournament_battle_end", "events": events, "won": won, "advanced": adv, "bey_points_earned": bp, **encounter.serialize_state()})
-            else:
-                rewards = _award_journey_rewards(player, encounter, won, is_master=getattr(encounter, 'is_master', False), is_elite=getattr(encounter, 'is_elite', False), is_champion=getattr(encounter, 'is_champion', False), master_data=getattr(encounter, 'master_data', None))
-                finish_type = "spin"
-                if encounter.opponent.is_burst or encounter.get_active().is_burst:
-                    finish_type = "burst"
-                elif encounter.opponent.is_ring_out or encounter.get_active().is_ring_out:
-                    finish_type = "xtreme"
-                await player.send({"type": "battle_end", "events": events,
-                                   "finish_type": finish_type, **rewards,
-                                   **encounter.serialize_state()})
-        else:
-            active = encounter.get_active()
-            available = ['rush', 'guard', 'conserve']
-            if active.special_move_id and not active.special_used:
-                available.append(active.special_move_id)
-            await player.send({"type": "battle_update", "events": events,
-                               "available_actions": available, **encounter.serialize_state()})
+        if encounter and hasattr(encounter, 'pending_action'):
+            encounter.pending_action = data.get("action")
         return
 
     if msg_type == "get_stadiums":
@@ -930,10 +957,7 @@ async def handle_message(player, msg):
         encounter = FreeBattle(player, team, opp_team[0], "master")
         encounter.is_master = True
         encounter.master_data = md
-        encounter.get_active().x = -45.0
-        encounter.get_active().y = 0.0
-        encounter.opponent.x = 45.0
-        encounter.opponent.y = 0.0
+        _setup_encounter_for_battle(encounter)
         active_encounters[player.id] = encounter
         active = encounter.get_active()
         available = ['rush', 'guard', 'conserve']
@@ -942,6 +966,7 @@ async def handle_message(player, msg):
         await player.send({"type": "master_battle_start",
                            "available_actions": available,
                            "master_name": md["name"], **encounter.serialize_state()})
+        encounter.battle_task = asyncio.create_task(_run_journey_battle(player, encounter))
         return
 
     if msg_type == "get_elite":
@@ -966,10 +991,7 @@ async def handle_message(player, msg):
         encounter = FreeBattle(player, team, opp_team[0], "elite")
         encounter.is_elite = True
         encounter.master_data = ed
-        encounter.get_active().x = -45.0
-        encounter.get_active().y = 0.0
-        encounter.opponent.x = 45.0
-        encounter.opponent.y = 0.0
+        _setup_encounter_for_battle(encounter)
         active_encounters[player.id] = encounter
         active = encounter.get_active()
         available = ['rush', 'guard', 'conserve']
@@ -977,6 +999,7 @@ async def handle_message(player, msg):
             available.append(active.special_move_id)
         await player.send({"type": "elite_battle_start",
                            "available_actions": available, **encounter.serialize_state()})
+        encounter.battle_task = asyncio.create_task(_run_journey_battle(player, encounter))
         return
 
     if msg_type == "get_champion":
@@ -1000,10 +1023,7 @@ async def handle_message(player, msg):
         encounter = FreeBattle(player, team, opp_team[0], "champion")
         encounter.is_champion = True
         encounter.master_data = champ
-        encounter.get_active().x = -45.0
-        encounter.get_active().y = 0.0
-        encounter.opponent.x = 45.0
-        encounter.opponent.y = 0.0
+        _setup_encounter_for_battle(encounter)
         active_encounters[player.id] = encounter
         active = encounter.get_active()
         available = ['rush', 'guard', 'conserve']
@@ -1011,6 +1031,7 @@ async def handle_message(player, msg):
             available.append(active.special_move_id)
         await player.send({"type": "champion_battle_start",
                            "available_actions": available, **encounter.serialize_state()})
+        encounter.battle_task = asyncio.create_task(_run_journey_battle(player, encounter))
         return
 
     if msg_type == "create_room":
@@ -1123,10 +1144,7 @@ async def handle_message(player, msg):
         encounter.is_tournament = True
         encounter.tournament_state = ts
         encounter.tournament_opponent = oi
-        encounter.get_active().x = -45.0
-        encounter.get_active().y = 0.0
-        encounter.opponent.x = 45.0
-        encounter.opponent.y = 0.0
+        _setup_encounter_for_battle(encounter)
         active_encounters[player.id] = encounter
         active = encounter.get_active()
         available = ['rush', 'guard', 'conserve']
@@ -1136,6 +1154,7 @@ async def handle_message(player, msg):
                            "available_actions": available,
                            "opponent_name": oi["name"], "round_name": oi["round_name"],
                            **encounter.serialize_state()})
+        encounter.battle_task = asyncio.create_task(_run_journey_battle(player, encounter))
         return
 
     if msg_type == "tournament_continue":
@@ -1172,10 +1191,7 @@ async def handle_message(player, msg):
         opponent = generate_opponent_beyblade(avg_level=int(_avg_team_level(td)))
         encounter = FreeBattle(player, team, opponent, "training")
         encounter.is_training = True
-        encounter.get_active().x = -45.0
-        encounter.get_active().y = 0.0
-        encounter.opponent.x = 45.0
-        encounter.opponent.y = 0.0
+        _setup_encounter_for_battle(encounter)
         active_encounters[player.id] = encounter
         state = encounter.serialize_state()
         state["is_training"] = True
@@ -1185,6 +1201,7 @@ async def handle_message(player, msg):
             available.append(active.special_move_id)
         state["available_actions"] = available
         await player.send({"type": "training_start", **state})
+        encounter.battle_task = asyncio.create_task(_run_journey_battle(player, encounter))
         return
 
     if msg_type == "submit_bug_report":
@@ -1207,7 +1224,10 @@ async def handle_message(player, msg):
     if msg_type == "forfeit_battle":
         encounter = active_encounters.get(player.id)
         if encounter:
-            del active_encounters[player.id]
+            if hasattr(encounter, 'battle_task') and encounter.battle_task:
+                encounter.battle_task.cancel()
+            if player.id in active_encounters:
+                del active_encounters[player.id]
         await player.send({"type": "battle_forfeited"})
         return
 
@@ -1250,7 +1270,10 @@ async def handler(websocket):
                 if opp:
                     await opp.send({"type": "trade_cancelled", "message": f"{player.username} disconnected."})
             _cleanup_trade_room(tc)
-        if player.id in active_encounters:
+        encounter = active_encounters.get(player.id)
+        if encounter:
+            if hasattr(encounter, 'battle_task') and encounter.battle_task:
+                encounter.battle_task.cancel()
             del active_encounters[player.id]
         aid = getattr(player, 'account_id', None)
         if aid and aid in active_tournaments:
